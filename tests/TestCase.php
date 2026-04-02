@@ -110,6 +110,18 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * Populates `Yii::$app` with a web application that has no session component.
+     *
+     * @param array $config Additional configuration to merge with the default application config.
+     *
+     * @phpstan-param array<string, mixed> $config
+     */
+    protected function mockWebApplicationWithoutSession(array $config = []): void
+    {
+        ApplicationFactory::webWithoutSession($config);
+    }
+
+    /**
      * Marks the current request as an Inertia request.
      *
      * @param string $method HTTP method to set for the request (default: `GET`).

@@ -44,6 +44,17 @@ final class ApplicationFactory
     }
 
     /**
+     * Creates a web application with the session component removed.
+     *
+     * @param array<string, mixed> $override
+     */
+    public static function webWithoutSession(array $override = []): void
+    {
+        $app = new Application(ArrayHelper::merge(self::commonBase(), $override));
+        $app->clear('session');
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private static function commonBase(): array

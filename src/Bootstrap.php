@@ -7,7 +7,6 @@ namespace yii\inertia;
 use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\Event;
-use yii\web\Request;
 use yii\web\Response;
 
 use function in_array;
@@ -23,6 +22,9 @@ use function in_array;
  */
 final class Bootstrap implements BootstrapInterface
 {
+    /**
+     * @param \yii\base\Application $app
+     */
     public function bootstrap($app): void
     {
         Yii::setAlias('@inertia', __DIR__);
@@ -40,15 +42,15 @@ final class Bootstrap implements BootstrapInterface
                     return;
                 }
 
-                $request = Yii::$app->getRequest();
+                $manager = Yii::$app->get('inertia');
 
-                if (!self::isInertiaRequest($request)) {
+                if (!$manager instanceof Manager || !$manager->isInertiaRequest()) {
                     return;
                 }
 
                 $vary = $response->getHeaders()->get('Vary');
 
-                if ($vary === null) {
+                if ($vary === null || trim($vary) === '') {
                     $response->getHeaders()->set('Vary', 'X-Inertia');
                 } else {
                     $tokens = array_map(
@@ -68,6 +70,8 @@ final class Bootstrap implements BootstrapInterface
                     $response->getHeaders()->set('Location', $redirect);
                 }
 
+                $request = Yii::$app->getRequest();
+
                 if (
                     in_array($request->getMethod(), ['PUT', 'PATCH', 'DELETE'], true)
                     && in_array($response->statusCode, [301, 302], true)
@@ -76,17 +80,5 @@ final class Bootstrap implements BootstrapInterface
                 }
             },
         );
-    }
-
-    /**
-     * Determines if the given request is an Inertia request.
-     *
-     * @param Request $request Request to check.
-     *
-     * @return bool `true` if the request is an Inertia request; otherwise, `false`.
-     */
-    private static function isInertiaRequest(Request $request): bool
-    {
-        return strcasecmp($request->getHeaders()->get('X-Inertia', ''), 'true') === 0;
     }
 }

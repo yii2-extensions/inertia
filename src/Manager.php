@@ -358,7 +358,7 @@ final class Manager extends Component
     {
         $vary = $response->getHeaders()->get('Vary');
 
-        if ($vary === null) {
+        if ($vary === null || trim($vary) === '') {
             $response->getHeaders()->set('Vary', 'X-Inertia');
 
             return;
@@ -489,7 +489,7 @@ final class Manager extends Component
     private function reflashSession(): void
     {
         if (!Yii::$app->has('session', true)) {
-            return; // session guard: untestable
+            return;
         }
 
         foreach (Yii::$app->getSession()->getAllFlashes(true) as $key => $value) {
@@ -628,7 +628,9 @@ final class Manager extends Component
     /**
      * Returns `true` if an empty resolved array at `$path` should be preserved in the output.
      *
-     * When `$only` is empty all nodes are kept. Otherwise the node is kept only if it was explicitly requested.
+     * Empty nodes under `errors` are always preserved. When `$only` is empty (except-only reload), empty parents are
+     * dropped to avoid overwriting cached client data. When `$only` is explicit, the node is kept only if it matches
+     * the requested paths.
      *
      * @param string $path Dot-notation prop path.
      * @param array $only Included paths from the partial-data header.
@@ -639,7 +641,7 @@ final class Manager extends Component
      */
     private function shouldKeepEmptyNode(string $path, array $only): bool
     {
-        if ($only === []) {
+        if ($path === 'errors' || str_starts_with($path, 'errors.')) {
             return true;
         }
 

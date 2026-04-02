@@ -223,6 +223,33 @@ final class ManagerTest extends TestCase
         );
     }
 
+    public function testLocationRedirectDoesNotSetXRedirectHeaderForAjaxRequests(): void
+    {
+        $this->setAbsoluteUrl('/dashboard');
+
+        // Set AJAX header but NOT Inertia header — this is a standard AJAX request.
+        Yii::$app->getRequest()->getHeaders()->set('X-Requested-With', 'XMLHttpRequest');
+
+        $response = Inertia::location(
+            '/login',
+        );
+
+        self::assertSame(
+            302,
+            $response->statusCode,
+            "Non-Inertia AJAX request should return '302'.",
+        );
+        self::assertNull(
+            $response->getHeaders()->get('X-Redirect'),
+            "Non-Inertia location redirect should not set X-Redirect header ('checkAjax' must be 'false').",
+        );
+        self::assertSame(
+            'https://example.test/login',
+            $response->getHeaders()->get('Location'),
+            'Location header should be set directly, not via X-Redirect.',
+        );
+    }
+
     public function testLocationReturnsConflictForInertiaRequests(): void
     {
         $this->prepareInertiaRequest();
@@ -290,6 +317,7 @@ final class ManagerTest extends TestCase
         );
 
         $page = $this->extractPage($response);
+
         $props = $page['props'];
 
         self::assertArrayHasKey(
@@ -369,6 +397,80 @@ final class ManagerTest extends TestCase
             ['name' => ['Required.']],
             $props['errors'],
             'Errors content should be preserved.',
+        );
+    }
+
+    public function testPartialReloadExceptOnlyDropsEmptyParent(): void
+    {
+        $this->prepareInertiaRequest();
+        $this->setAbsoluteUrl('/dashboard');
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Component', 'Dashboard');
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Except', 'auth.user');
+
+        $response = Inertia::render(
+            'Dashboard',
+            [
+                'auth' => [
+                    'user' => [
+                        'id' => 1,
+                        'name' => 'Jane',
+                    ],
+                ],
+                'stats' => ['visits' => 10],
+            ],
+        );
+
+        $page = $this->extractPage($response);
+
+        $props = $page['props'];
+
+        self::assertArrayNotHasKey(
+            'auth',
+            $props,
+            "Empty parent 'auth' should be dropped in except-only reload to avoid overwriting client cache.",
+        );
+        self::assertArrayHasKey(
+            'stats',
+            $props,
+            'Non-excluded props should remain.',
+        );
+    }
+
+    public function testPartialReloadExcludedPropDoesNotAppearAsNull(): void
+    {
+        $this->prepareInertiaRequest();
+        $this->setAbsoluteUrl('/dashboard');
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Component', 'Dashboard');
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Data', 'stats');
+
+        $response = Inertia::render(
+            'Dashboard',
+            [
+                'stats' => [
+                    'visits' => 10,
+                ],
+                'users' => [
+                    'Jane',
+                ],
+                'metadata' => null,
+            ],
+        );
+
+        $page = $this->extractPage($response);
+
+        $props = $page['props'];
+
+        self::assertArrayNotHasKey(
+            'users',
+            $props,
+            "Excluded prop should not appear at all (not even as 'null').",
+        );
+        self::assertArrayNotHasKey(
+            'metadata',
+            $props,
+            'Excluded null prop should not appear in filtered output.',
         );
     }
 
@@ -897,12 +999,60 @@ final class ManagerTest extends TestCase
 
         Yii::$app->getResponse()->getHeaders()->set('Vary', 'Accept-Encoding, X-Inertia');
 
-        $response = Inertia::render('Dashboard');
+        $response = Inertia::render(
+            'Dashboard',
+        );
 
         self::assertSame(
             'Accept-Encoding, X-Inertia',
             $response->getHeaders()->get('Vary'),
             'Vary header should detect X-Inertia even with leading spaces from comma-separated values.',
+        );
+    }
+
+    public function testRenderFlashesAreConsumedAfterReading(): void
+    {
+        $this->prepareInertiaRequest();
+        $this->setAbsoluteUrl('/dashboard');
+
+        Yii::$app->getSession()->setFlash('success', 'Done.');
+        Yii::$app->getSession()->setFlash('errors', ['field' => ['Required.']]);
+
+        $response = Inertia::render(
+            'Dashboard',
+        );
+
+        $page = $this->extractPage($response);
+
+        // flashes should have been consumed (`getAllFlashes(true)` deletes them).
+        self::assertSame(
+            [],
+            Yii::$app->getSession()->getAllFlashes(),
+            'All flashes should be consumed after render (getAllFlashes must pass true to delete).',
+        );
+
+        // verify flash data was correctly split.
+        $props = $page['props'];
+
+        self::assertArrayHasKey(
+            'errors',
+            $props,
+            'Errors should be extracted from flashes.',
+        );
+        self::assertSame(
+            ['field' => ['Required.']],
+            $props['errors'],
+            'Errors content should match flash data.',
+        );
+        self::assertArrayHasKey(
+            'flash',
+            $page,
+            'Non-error flashes should appear in flash key.',
+        );
+        self::assertSame(
+            ['success' => 'Done.'],
+            $page['flash'],
+            'Flash data should contain remaining non-error flashes.',
         );
     }
 
@@ -1220,6 +1370,47 @@ final class ManagerTest extends TestCase
         );
     }
 
+    public function testRenderWithoutSessionReturnsEmptyErrorsAndNoFlash(): void
+    {
+        $this->destroyApplication();
+        $this->mockWebApplicationWithoutSession();
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        self::assertFalse(
+            Yii::$app->has('session', false),
+            'Session component should not be registered.',
+        );
+
+        $this->setAbsoluteUrl('/dashboard');
+
+        $response = Inertia::render(
+            'Dashboard',
+            [
+                'key' => 'value',
+            ],
+        );
+
+        $page = $this->extractPage($response);
+
+        $props = $page['props'];
+
+        self::assertArrayHasKey(
+            'errors',
+            $props,
+            'Errors should be present even without session.',
+        );
+        self::assertSame(
+            [],
+            $props['errors'],
+            'Errors should be empty when session is absent.',
+        );
+        self::assertArrayNotHasKey(
+            'flash',
+            $page,
+            'Flash should not be present when session is absent.',
+        );
+    }
+
     public function testRenderWithViewDataMergesIntoView(): void
     {
         $this->destroyApplication();
@@ -1454,6 +1645,43 @@ final class ManagerTest extends TestCase
             409,
             $response->statusCode,
             'Matching integer version (as string) should not trigger conflict.',
+        );
+    }
+
+    public function testVersionConflictWithoutSessionDoesNotFail(): void
+    {
+        $this->destroyApplication();
+        $this->mockWebApplicationWithoutSession();
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        self::assertFalse(
+            Yii::$app->has('session', false),
+            'Session component should not be registered.',
+        );
+
+        $this->prepareInertiaRequest();
+        $this->setAbsoluteUrl('/dashboard');
+
+        $manager = Yii::$app->get('inertia');
+
+        self::assertInstanceOf(
+            Manager::class,
+            $manager,
+            'Inertia component should be a Manager instance.',
+        );
+
+        $manager->version = 'build-new';
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Version', 'build-old');
+
+        $response = Inertia::render(
+            'Dashboard',
+        );
+
+        self::assertSame(
+            409,
+            $response->statusCode,
+            'Version conflict should work even without session component.',
         );
     }
 
