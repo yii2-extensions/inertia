@@ -33,7 +33,7 @@ final class InertiaTest extends TestCase
 
         self::assertEmpty(
             Inertia::getShared(),
-            'All shared props should be removed after flush.'
+            'All shared props should be removed after flush.',
         );
     }
 
@@ -70,17 +70,6 @@ final class InertiaTest extends TestCase
         );
     }
 
-    public function testGetSharedReturnsNestedValue(): void
-    {
-        Inertia::share('auth.user.name', 'Jane');
-
-        self::assertSame(
-            'Jane',
-            Inertia::getShared('auth.user.name'),
-            'Should return the nested value at the given dot-notation key.',
-        );
-    }
-
     public function testGetSharedReturnsDefaultWhenKeyNotFound(): void
     {
         self::assertSame(
@@ -90,12 +79,14 @@ final class InertiaTest extends TestCase
         );
     }
 
-    public function testGetVersionReturnsEmptyStringByDefault(): void
+    public function testGetSharedReturnsNestedValue(): void
     {
+        Inertia::share('auth.user.name', 'Jane');
+
         self::assertSame(
-            '',
-            Inertia::getVersion(),
-            'Should return empty string when no version is configured.',
+            'Jane',
+            Inertia::getShared('auth.user.name'),
+            'Should return the nested value at the given dot-notation key.',
         );
     }
 
@@ -118,16 +109,12 @@ final class InertiaTest extends TestCase
         );
     }
 
-    public function testLocationReturnsResponseForStandardRequests(): void
+    public function testGetVersionReturnsEmptyStringByDefault(): void
     {
-        $this->setAbsoluteUrl('/dashboard');
-
-        $response = Inertia::location('/login');
-
         self::assertSame(
-            302,
-            $response->statusCode,
-            "Standard request should return a '302' redirect.",
+            '',
+            Inertia::getVersion(),
+            'Should return empty string when no version is configured.',
         );
     }
 
@@ -148,6 +135,40 @@ final class InertiaTest extends TestCase
             $response->getHeaders()->get('X-Inertia-Location'),
             'X-Inertia-Location header should contain the absolute redirect URL.',
         );
+    }
+
+    public function testLocationReturnsResponseForStandardRequests(): void
+    {
+        $this->setAbsoluteUrl('/dashboard');
+
+        $response = Inertia::location('/login');
+
+        self::assertSame(
+            302,
+            $response->statusCode,
+            "Standard request should return a '302' redirect.",
+        );
+    }
+
+    public function testManagerThrowsExceptionForInvalidComponent(): void
+    {
+        $this->destroyApplication();
+        $this->mockWebApplication(
+            [
+                'components' => [
+                    'inertia' => [
+                        'class' => stdClass::class,
+                    ],
+                ],
+            ],
+        );
+
+        $this->expectException(InvalidConfigException::class);
+        $this->expectExceptionMessage(
+            'The "inertia" application component must be an instance of ' . Manager::class . '.',
+        );
+
+        Inertia::getVersion();
     }
 
     public function testRenderReturnsHtmlForStandardRequests(): void
@@ -177,17 +198,6 @@ final class InertiaTest extends TestCase
         );
     }
 
-    public function testShareWithSingleKey(): void
-    {
-        Inertia::share('app.name', 'MyApp');
-
-        self::assertSame(
-            'MyApp',
-            Inertia::getShared('app.name'),
-            'With single key should store the value.',
-        );
-    }
-
     public function testShareWithArray(): void
     {
         Inertia::share(['locale' => 'en', 'debug' => true]);
@@ -195,33 +205,12 @@ final class InertiaTest extends TestCase
         self::assertSame(
             'en',
             Inertia::getShared('locale'),
-            "With array should store locale.",
+            'With array should store locale.',
         );
         self::assertTrue(
             Inertia::getShared('debug'),
             'With array should store debug.',
         );
-    }
-
-    public function testManagerThrowsExceptionForInvalidComponent(): void
-    {
-        $this->destroyApplication();
-        $this->mockWebApplication(
-            [
-                'components' => [
-                    'inertia' => [
-                        'class' => stdClass::class,
-                    ],
-                ],
-            ],
-        );
-
-        $this->expectException(InvalidConfigException::class);
-        $this->expectExceptionMessage(
-            'The "inertia" application component must be an instance of ' . Manager::class . '.',
-        );
-
-        Inertia::getVersion();
     }
 
     public function testShareWithArrayStoresOnlyDeclaredKeys(): void
@@ -234,6 +223,17 @@ final class InertiaTest extends TestCase
             ['locale' => 'en', 'debug' => true],
             $shared,
             'Array share should store exactly the declared keys without side effects.',
+        );
+    }
+
+    public function testShareWithSingleKey(): void
+    {
+        Inertia::share('app.name', 'MyApp');
+
+        self::assertSame(
+            'MyApp',
+            Inertia::getShared('app.name'),
+            'With single key should store the value.',
         );
     }
 }
