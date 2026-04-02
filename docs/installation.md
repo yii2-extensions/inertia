@@ -46,4 +46,3 @@ and jQuery widgets. In that scenario, use `yii2-framework/jquery` instead.
 - ⚙️ [Configuration Reference](configuration.md)
 - 💡 [Usage Examples](examples.md)
 - 🧪 [Testing Guide](testing.md)
-- 🛠️ [Development Guide](development.md)

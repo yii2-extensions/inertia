@@ -64,4 +64,3 @@ Session flash key that will be exposed as `props.errors`. Defaults to `errors`.
 - 📚 [Installation Guide](installation.md)
 - 💡 [Usage Examples](examples.md)
 - 🧪 [Testing Guide](testing.md)
-- 🛠️ [Development Guide](development.md)

@@ -49,4 +49,3 @@ return Inertia::location('https://example.com/account/login');
 - 📚 [Installation Guide](installation.md)
 - ⚙️ [Configuration Reference](configuration.md)
 - 🧪 [Testing Guide](testing.md)
-- 🛠️ [Development Guide](development.md)
