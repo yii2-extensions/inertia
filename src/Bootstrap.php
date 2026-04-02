@@ -51,9 +51,12 @@ final class Bootstrap implements BootstrapInterface
                 if ($vary === null) {
                     $response->getHeaders()->set('Vary', 'X-Inertia');
                 } else {
-                    $tokens = array_map('trim', explode(',', $vary));
+                    $tokens = array_map(
+                        static fn(string $token): string => strtolower(trim($token)),
+                        explode(',', $vary),
+                    );
 
-                    if (!in_array('X-Inertia', $tokens, true)) {
+                    if (!in_array('x-inertia', $tokens, true)) {
                         $response->getHeaders()->set('Vary', $vary . ', X-Inertia');
                     }
                 }

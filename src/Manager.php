@@ -364,9 +364,12 @@ final class Manager extends Component
             return;
         }
 
-        $tokens = array_map('trim', explode(',', $vary));
+        $tokens = array_map(
+            static fn(string $token): string => strtolower(trim($token)),
+            explode(',', $vary),
+        );
 
-        if (!in_array('X-Inertia', $tokens, true)) {
+        if (!in_array('x-inertia', $tokens, true)) {
             $response->getHeaders()->set('Vary', $vary . ', X-Inertia');
         }
     }
@@ -486,7 +489,7 @@ final class Manager extends Component
     private function reflashSession(): void
     {
         if (!Yii::$app->has('session', true)) {
-            return;
+            return; // session guard: untestable
         }
 
         foreach (Yii::$app->getSession()->getAllFlashes(true) as $key => $value) {

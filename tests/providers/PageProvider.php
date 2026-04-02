@@ -31,23 +31,6 @@ final class PageProvider
     public static function jsonSerialize(): array
     {
         return [
-            'clearHistory false omitted from output' => [
-                [
-                    'component' => 'Home',
-                    'props' => [],
-                    'url' => '/',
-                    'version' => '',
-                    'flash' => [],
-                    'clearHistory' => false,
-                    'encryptHistory' => false,
-                ],
-                [
-                    'component' => 'Home',
-                    'props' => [],
-                    'url' => '/',
-                    'version' => '',
-                ],
-            ],
             'minimal payload' => [
                 [
                     'component' => 'Home',
