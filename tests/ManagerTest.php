@@ -334,6 +334,31 @@ final class ManagerTest extends TestCase
         );
     }
 
+    public function testPartialReloadDoesNotLeakExcludedPropsAsNull(): void
+    {
+        $this->prepareInertiaRequest();
+        $this->setAbsoluteUrl('/dashboard');
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Component', 'Dashboard');
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Data', 'title');
+
+        $response = Inertia::render(
+            'Dashboard',
+            [
+                'title' => 'Hello',
+                'secret' => static fn(): string => 'should-never-appear',
+            ],
+        );
+
+        $page = $this->extractPage($response);
+
+        self::assertSame(
+            ['title' => 'Hello', 'errors' => []],
+            $page['props'],
+            'Excluded props must not leak as null or resolved values.',
+        );
+    }
+
     public function testPartialReloadDropsUnrequestedEmptyProp(): void
     {
         $this->prepareInertiaRequest();
@@ -399,6 +424,31 @@ final class ManagerTest extends TestCase
             ['name' => ['Required.']],
             $props['errors'],
             'Errors content should be preserved.',
+        );
+    }
+
+    public function testPartialReloadExceptDoesNotLeakExcludedPropAsNull(): void
+    {
+        $this->prepareInertiaRequest();
+        $this->setAbsoluteUrl('/dashboard');
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Component', 'Dashboard');
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Except', 'secret');
+
+        $response = Inertia::render(
+            'Dashboard',
+            [
+                'title' => 'Hello',
+                'secret' => static fn(): string => 'should-never-appear',
+            ],
+        );
+
+        $page = $this->extractPage($response);
+
+        self::assertSame(
+            ['title' => 'Hello', 'errors' => []],
+            $page['props'],
+            'Except-excluded props must not leak as null or resolved values.',
         );
     }
 
@@ -468,56 +518,6 @@ final class ManagerTest extends TestCase
         self::assertEmpty(
             $props['errors'],
             'Errors should be an empty array when no flash errors exist.',
-        );
-    }
-
-    public function testPartialReloadDoesNotLeakExcludedPropsAsNull(): void
-    {
-        $this->prepareInertiaRequest();
-        $this->setAbsoluteUrl('/dashboard');
-
-        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Component', 'Dashboard');
-        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Data', 'title');
-
-        $response = Inertia::render(
-            'Dashboard',
-            [
-                'title' => 'Hello',
-                'secret' => static fn(): string => 'should-never-appear',
-            ],
-        );
-
-        $page = $this->extractPage($response);
-
-        self::assertSame(
-            ['title' => 'Hello', 'errors' => []],
-            $page['props'],
-            'Excluded props must not leak as null or resolved values.',
-        );
-    }
-
-    public function testPartialReloadExceptDoesNotLeakExcludedPropAsNull(): void
-    {
-        $this->prepareInertiaRequest();
-        $this->setAbsoluteUrl('/dashboard');
-
-        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Component', 'Dashboard');
-        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Partial-Except', 'secret');
-
-        $response = Inertia::render(
-            'Dashboard',
-            [
-                'title' => 'Hello',
-                'secret' => static fn(): string => 'should-never-appear',
-            ],
-        );
-
-        $page = $this->extractPage($response);
-
-        self::assertSame(
-            ['title' => 'Hello', 'errors' => []],
-            $page['props'],
-            'Except-excluded props must not leak as null or resolved values.',
         );
     }
 
