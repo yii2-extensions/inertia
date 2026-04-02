@@ -18,6 +18,8 @@ use yii\web\Response;
  */
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
+    private const PAGE_JSON_PATTERN = '/<script type="application\/json">(.*?)<\/script>/s';
+
     public static function tearDownAfterClass(): void
     {
         parent::tearDownAfterClass();
@@ -63,12 +65,12 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         $content = (string) $response->content;
 
         self::assertMatchesRegularExpression(
-            '/<script type="application\/json">(.*?)<\/script>/s',
+            self::PAGE_JSON_PATTERN,
             $content,
             'HTML response should contain an inline JSON script with the page payload.',
         );
 
-        $result = preg_match('/<script type="application\/json">(.*?)<\/script>/s', $content, $matches);
+        $result = preg_match(self::PAGE_JSON_PATTERN, $content, $matches);
 
         self::assertSame(
             1,

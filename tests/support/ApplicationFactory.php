@@ -7,6 +7,7 @@ namespace yii\inertia\tests\support;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\inertia\Bootstrap;
+use yii\web\Application;
 
 /**
  * Creates Yii application instances for tests.
@@ -37,7 +38,7 @@ final class ApplicationFactory
      */
     public static function web(array $override = []): void
     {
-        new \yii\web\Application(ArrayHelper::merge(self::commonBase(), $override));
+        new Application(ArrayHelper::merge(self::commonBase(), $override));
     }
 
     /**

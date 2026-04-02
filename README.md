@@ -131,7 +131,6 @@ client adapter packages built on top of the server contract defined here.
 - [Installation Guide](docs/installation.md)
 - [Configuration Reference](docs/configuration.md)
 - [Usage Examples](docs/examples.md)
-- [Testing Guide](docs/testing.md)
 - [Development Notes](docs/development.md)
 
 ## Package information
