@@ -242,7 +242,7 @@ final class Manager extends Component
         }
 
         [$errors, $flash] = $this->consumeFlashes();
-        $resolvedProps = $this->resolveProps($component, $props, $errors);
+        $resolvedProps = $this->resolveProps($component, $props, $errors, $flash);
 
         $page = new Page($component, $resolvedProps, $request->getUrl(), $version, $flash);
 
@@ -330,7 +330,7 @@ final class Manager extends Component
      */
     private function consumeFlashes(): array
     {
-        if (!Yii::$app->has('session', true)) {
+        if (!Yii::$app->has('session')) {
             return [[], []];
         }
 
@@ -396,7 +396,8 @@ final class Manager extends Component
     /**
      * Returns `true` if `$path` is explicitly excluded by the `X-Inertia-Partial-Except` list.
      *
-     * Paths under `errors` are never excluded, ensuring validation messages survive partial reloads.
+     * Paths under `errors` and `flash` are never excluded, ensuring validation messages and flash data survive partial
+     * reloads.
      *
      * @param string $path Dot-notation prop path.
      * @param list<string> $except Excluded paths from the partial-except header.
@@ -405,7 +406,12 @@ final class Manager extends Component
      */
     private function isExplicitlyExcluded(string $path, array $except): bool
     {
-        if ($path === 'errors' || str_starts_with($path, 'errors.')) {
+        if (
+            $path === 'errors'
+            || str_starts_with($path, 'errors.')
+            || $path === 'flash'
+            || str_starts_with($path, 'flash.')
+        ) {
             return false;
         }
 
@@ -421,7 +427,7 @@ final class Manager extends Component
     /**
      * Returns `true` if `$path` matches the `X-Inertia-Partial-Data` inclusion list.
      *
-     * Paths under `errors` always match. An empty `$only` list means all paths are included.
+     * Paths under `errors` and `flash` always match. An empty `$only` list means all paths are included.
      *
      * @param string $path Dot-notation prop path.
      * @param list<string> $only Included paths from the partial-data header.
@@ -430,7 +436,12 @@ final class Manager extends Component
      */
     private function matchesOnly(string $path, array $only): bool
     {
-        if ($path === 'errors' || str_starts_with($path, 'errors.')) {
+        if (
+            $path === 'errors'
+            || str_starts_with($path, 'errors.')
+            || $path === 'flash'
+            || str_starts_with($path, 'flash.')
+        ) {
             return true;
         }
 
@@ -547,25 +558,31 @@ final class Manager extends Component
     }
 
     /**
-     * Merges shared and page props, injects errors, and applies partial-reload filtering when needed.
+     * Merges shared and page props, injects errors and flash data, and applies partial-reload filtering when needed.
      *
      * @param string $component Frontend component name used to match the partial-reload header.
      * @param array $props Page-level props passed to `render()`.
      * @param array $errors Validation errors extracted from session flashes.
+     * @param array $flash Session flash messages extracted from session flashes.
      *
      * @return array Resolved props ready to be sent to the client, with all closures invoked and filtered according to
      * the partial reload headers when applicable.
      *
      * @phpstan-param array<string, mixed> $props
      * @phpstan-param array<string, mixed> $errors
+     * @phpstan-param array<string, mixed> $flash
      *
      * @phpstan-return array<string, mixed>
      */
-    private function resolveProps(string $component, array $props, array $errors): array
+    private function resolveProps(string $component, array $props, array $errors, array $flash): array
     {
         $resolved = ArrayHelper::merge($this->shared, $props);
 
         $resolved['errors'] = $errors;
+
+        if ($flash !== [] || !array_key_exists('flash', $resolved)) {
+            $resolved['flash'] = $flash;
+        }
 
         if (!$this->shouldApplyPartialReload($component)) {
             /** @phpstan-var array<string, mixed> */
