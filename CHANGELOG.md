@@ -12,3 +12,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - fix: update `README.md` to reference correct Yii2 framework repository.
 - docs: update installation instructions and correct Yii2 capitalization in `README.md`.
 - fix: update `composer.json` to require the correct Yii2 framework package.
+- refactor: move `flash` and `errors` injection into `resolveProps()` and fix `consumeFlashes()` session initialization so flash data reaches Vue components reliably.

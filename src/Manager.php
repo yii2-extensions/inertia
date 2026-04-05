@@ -242,7 +242,7 @@ final class Manager extends Component
         }
 
         [$errors, $flash] = $this->consumeFlashes();
-        $resolvedProps = $this->resolveProps($component, $props, $errors);
+        $resolvedProps = $this->resolveProps($component, $props, $errors, $flash);
 
         $page = new Page($component, $resolvedProps, $request->getUrl(), $version, $flash);
 
@@ -330,7 +330,7 @@ final class Manager extends Component
      */
     private function consumeFlashes(): array
     {
-        if (!Yii::$app->has('session', true)) {
+        if (!Yii::$app->has('session')) {
             return [[], []];
         }
 
@@ -547,25 +547,28 @@ final class Manager extends Component
     }
 
     /**
-     * Merges shared and page props, injects errors, and applies partial-reload filtering when needed.
+     * Merges shared and page props, injects errors and flash data, and applies partial-reload filtering when needed.
      *
      * @param string $component Frontend component name used to match the partial-reload header.
      * @param array $props Page-level props passed to `render()`.
      * @param array $errors Validation errors extracted from session flashes.
+     * @param array $flash Session flash messages extracted from session flashes.
      *
      * @return array Resolved props ready to be sent to the client, with all closures invoked and filtered according to
      * the partial reload headers when applicable.
      *
      * @phpstan-param array<string, mixed> $props
      * @phpstan-param array<string, mixed> $errors
+     * @phpstan-param array<string, mixed> $flash
      *
      * @phpstan-return array<string, mixed>
      */
-    private function resolveProps(string $component, array $props, array $errors): array
+    private function resolveProps(string $component, array $props, array $errors, array $flash): array
     {
         $resolved = ArrayHelper::merge($this->shared, $props);
 
         $resolved['errors'] = $errors;
+        $resolved['flash'] = $flash;
 
         if (!$this->shouldApplyPartialReload($component)) {
             /** @phpstan-var array<string, mixed> */
