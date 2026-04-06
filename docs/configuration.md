@@ -26,7 +26,7 @@ return [
                 return is_file($path) ? (string) filemtime($path) : '';
             },
             'shared' => [
-                'auth.user' => static fn(): ?array => Yii::$app->user->isGuest
+                'auth.user' => static fn(): array|null => Yii::$app->user->isGuest
                     ? null
                     : ['id' => Yii::$app->user->getId()],
                 'app.name' => static fn(): string => Yii::$app->name,
@@ -58,6 +58,27 @@ Associative array of shared props. Dot notation is supported for nested props.
 ### `errorFlashKey`
 
 Session flash key that will be exposed as `props.errors`. Defaults to `errors`.
+
+## CSRF protection
+
+The package ships with `yii\inertia\web\Request`, a drop-in replacement for `yii\web\Request` that implements the
+cookie-to-header CSRF pattern used by Inertia's built-in HTTP client.
+
+```php
+// config/web.php
+return [
+    'components' => [
+        'request' => [
+            'class' => \yii\inertia\web\Request::class,
+            'cookieValidationKey' => 'your-secret-key',
+        ],
+    ],
+];
+```
+
+The component sets a non-`httpOnly` `XSRF-TOKEN` cookie. Inertia reads it on the client and sends back the value via
+the `X-XSRF-TOKEN` header. The `getCsrfTokenFromHeader()` override unsigns the HMAC-validated payload and returns a
+masked token compatible with Yii's `validateCsrfToken()` flow.
 
 ## Next steps
 

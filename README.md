@@ -157,6 +157,20 @@ Yii::$app->session->setFlash('success', 'Record created.');
 return $this->redirect(['view', 'id' => $model->id]);
 ```
 
+## CSRF protection
+
+Drop in `yii\inertia\web\Request` to enable Inertia's automatic cookie-to-header CSRF flow:
+
+```php
+'request' => [
+    'class' => \yii\inertia\web\Request::class,
+    'cookieValidationKey' => 'your-secret-key',
+],
+```
+
+Inertia's HTTP client reads the `XSRF-TOKEN` cookie and sends it as `X-XSRF-TOKEN` automatically no client-side
+configuration required. See the [Configuration Reference](docs/configuration.md) for details.
+
 ## Package boundaries
 
 This repository intentionally does not include Vue, React, or Svelte bootstrapping. Those concerns belong in separate
