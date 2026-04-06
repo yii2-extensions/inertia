@@ -7,17 +7,32 @@ use yii\inertia\Inertia;
 
 Inertia::share(
     [
-        'auth.user' => static fn(): ?array => Yii::$app->user->isGuest
+        'auth.user' => static fn(): array|null => Yii::$app->user->isGuest
             ? null
             : ['id' => Yii::$app->user->getId()],
-        'csrf' => static fn(): array => [
-            'param' => Yii::$app->request->csrfParam,
-            'token' => Yii::$app->request->getCsrfToken(),
-            'header' => Yii::$app->request->csrfHeader,
-        ],
     ],
 );
 ```
+
+## CSRF protection
+
+Configure the application `request` component to use `yii\inertia\web\Request`. This sets a non-`httpOnly`
+`XSRF-TOKEN` cookie that Inertia's built-in HTTP client reads automatically and sends back as the `X-XSRF-TOKEN`
+header on every request, mirroring Laravel's cookie-to-header pattern.
+
+```php
+// config/web.php
+return [
+    'components' => [
+        'request' => [
+            'class' => \yii\inertia\web\Request::class,
+            'cookieValidationKey' => 'your-secret-key',
+        ],
+    ],
+];
+```
+
+No client-side configuration is required — Inertia handles cookie reading and header injection automatically.
 
 ## Rendering a page
 
