@@ -25,6 +25,17 @@ final class MergePropTest extends TestCase
         );
     }
 
+    public function testAppendWithEmptyArrayReturnsEmptyPaths(): void
+    {
+        $merge = (new MergeProp([]))->append([]);
+
+        self::assertSame(
+            [],
+            $merge->getAppendPaths(),
+            'Should return an empty array when path is an empty array.',
+        );
+    }
+
     public function testAppendWithEmptyStringReturnsEmptyPaths(): void
     {
         $merge = (new MergeProp([]))->append('');
