@@ -36,6 +36,39 @@ final class MergePropTest extends TestCase
         );
     }
 
+    public function testAppendWithFlatArrayAndMatchOn(): void
+    {
+        $merge = (new MergeProp([]))->append(['data', 'items'], 'id');
+
+        self::assertSame(
+            ['data' => 'id', 'items' => 'id'],
+            $merge->getAppendPaths(),
+            'Flat array with matchOn should map each path to the default match key.',
+        );
+    }
+
+    public function testAppendWithFlatArrayWithoutMatchOn(): void
+    {
+        $merge = (new MergeProp([]))->append(['data', 'items']);
+
+        self::assertSame(
+            ['data' => '', 'items' => ''],
+            $merge->getAppendPaths(),
+            'Flat array without matchOn should map each path to an empty string.',
+        );
+    }
+
+    public function testAppendWithMixedArray(): void
+    {
+        $merge = (new MergeProp([]))->append(['data', 'users' => 'id']);
+
+        self::assertSame(
+            ['data' => '', 'users' => 'id'],
+            $merge->getAppendPaths(),
+            'Mixed array should use empty string for integer keys and explicit value for string keys.',
+        );
+    }
+
     public function testAppendWithStringPathAndMatchOn(): void
     {
         $merge = (new MergeProp(['item']))->append('data', 'id');
