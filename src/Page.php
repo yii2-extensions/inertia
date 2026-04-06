@@ -94,7 +94,22 @@ final class Page implements JsonSerializable
      *
      * @return array Page payload as an associative array ready for JSON serialization.
      *
-     * @phpstan-return array<string, mixed>
+     * @phpstan-return array{
+     *   component: string,
+     *   props: array<string, mixed>,
+     *   url: string,
+     *   version: int|string,
+     *   flash?: array<string, mixed>,
+     *   clearHistory?: bool,
+     *   encryptHistory?: bool,
+     *   deferredProps?: array<string, list<string>>,
+     *   mergeProps?: list<string>,
+     *   prependProps?: list<string>,
+     *   deepMergeProps?: list<string>,
+     *   matchPropsOn?: array<string, string>,
+     *   scrollProps?: array<string, array<string, mixed>>,
+     *   onceProps?: array<string, array<string, mixed>>,
+     * }
      */
     public function jsonSerialize(): array
     {

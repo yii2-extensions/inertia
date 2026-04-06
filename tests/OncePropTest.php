@@ -110,11 +110,12 @@ final class OncePropTest extends TestCase
 
     public function testUntilWithDateInterval(): void
     {
+        $before = new DateTimeImmutable();
+
         $once = (new OnceProp(fn() => []))
             ->until(new DateInterval('PT1H'));
 
         $after = new DateTimeImmutable();
-        $before = new DateTimeImmutable();
 
         $expiresAt = $once->getExpiresAtMs();
 
@@ -171,11 +172,12 @@ final class OncePropTest extends TestCase
 
     public function testUntilWithIntegerSeconds(): void
     {
+        $before = time();
+
         $once = (new OnceProp(fn() => []))
             ->until(3600);
 
         $after = time();
-        $before = time();
 
         $expiresAt = $once->getExpiresAtMs();
 

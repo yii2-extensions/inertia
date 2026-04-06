@@ -210,9 +210,11 @@ final class MergeProp
         foreach ($paths as $key => $value) {
             if (is_int($key)) {
                 $normalized[$value] = $matchOn ?? '';
-            } else {
-                $normalized[$key] = $value;
+
+                continue;
             }
+
+            $normalized[$key] = $value;
         }
 
         return $normalized;

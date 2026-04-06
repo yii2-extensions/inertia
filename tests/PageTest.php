@@ -172,4 +172,35 @@ final class PageTest extends TestCase
             'Should return a new instance when setting the attribute, ensuring immutability.',
         );
     }
+
+    public function testScrollPropsIncludedWhenNonEmpty(): void
+    {
+        $page = (new Page('Feed', [], '/feed'))
+            ->withScrollProps(['posts' => ['pageName' => 'page', 'currentPage' => 1, 'nextPage' => 2]]);
+
+        $serialized = $page->jsonSerialize();
+
+        self::assertArrayHasKey(
+            'scrollProps',
+            $serialized,
+            "Key 'scrollProps' should appear when non-empty.",
+        );
+        self::assertSame(
+            ['posts' => ['pageName' => 'page', 'currentPage' => 1, 'nextPage' => 2]],
+            $serialized['scrollProps'],
+        );
+    }
+
+    public function testScrollPropsOmittedWhenEmpty(): void
+    {
+        $page = new Page('Home', [], '/');
+
+        $serialized = $page->jsonSerialize();
+
+        self::assertArrayNotHasKey(
+            'scrollProps',
+            $serialized,
+            "Key 'scrollProps' should not appear when empty.",
+        );
+    }
 }

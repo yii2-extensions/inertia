@@ -60,7 +60,6 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     protected function extractPage(Response $response): array
     {
         if ($response->data instanceof Page) {
-            /** @phpstan-ignore return.type */
             return $response->data->jsonSerialize();
         }
 
@@ -87,7 +86,24 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
             'Decoded JSON page payload should be an array.',
         );
 
-        /** @phpstan-ignore return.type */
+        /**
+         * @phpstan-var array{
+         *   component: string,
+         *   props: array<string, mixed>,
+         *   url: string,
+         *   version: int|string,
+         *   flash?: array<string, mixed>,
+         *   clearHistory?: bool,
+         *   encryptHistory?: bool,
+         *   deferredProps?: array<string, list<string>>,
+         *   mergeProps?: list<string>,
+         *   prependProps?: list<string>,
+         *   deepMergeProps?: list<string>,
+         *   matchPropsOn?: array<string, string>,
+         *   scrollProps?: array<string, array<string, mixed>>,
+         *   onceProps?: array<string, array<string, mixed>>,
+         * } $decoded
+         */
         return $decoded;
     }
 

@@ -378,6 +378,92 @@ final class Manager extends Component
     }
 
     /**
+     * Collects deferred-prop metadata and returns the callback when the request is a partial reload.
+     *
+     * @phpstan-param array{deferredProps: array<string, list<string>>, mergeProps: list<string>, prependProps: list<string>, deepMergeProps: list<string>, matchPropsOn: array<string, string>, scrollProps: array<string, array<string, mixed>>, onceProps: array<string, array<string, mixed>>} $metadata
+     *
+     * @phpstan-return (Closure(): mixed)|null
+     */
+    private function handleDeferredProp(
+        DeferredProp $prop,
+        string $path,
+        bool $isPartialReload,
+        array &$metadata,
+    ): Closure|null {
+        $metadata['deferredProps'][$prop->getGroup()][] = $path;
+
+        return $isPartialReload ? $prop->getCallback() : null;
+    }
+
+    /**
+     * Collects merge-prop metadata unless the prop is being reset by the client.
+     *
+     * @param list<string> $resetProps Prop paths the client wants to reset.
+     *
+     * @phpstan-param array{deferredProps: array<string, list<string>>, mergeProps: list<string>, prependProps: list<string>, deepMergeProps: list<string>, matchPropsOn: array<string, string>, scrollProps: array<string, array<string, mixed>>, onceProps: array<string, array<string, mixed>>} $metadata
+     */
+    private function handleMergeProp(MergeProp $prop, string $path, array $resetProps, array &$metadata): void
+    {
+        if (in_array($path, $resetProps, true)) {
+            return;
+        }
+
+        $metadata['mergeProps'][] = $path;
+
+        if ($prop->isDeep()) {
+            $metadata['deepMergeProps'][] = $path;
+        }
+
+        foreach ($prop->getAppendPaths() as $appendPath => $matchKey) {
+            $fullPath = $appendPath !== '' ? $path . '.' . $appendPath : $path;
+
+            if ($matchKey !== '') {
+                $metadata['matchPropsOn'][$fullPath] = $matchKey;
+            }
+        }
+
+        foreach ($prop->getPrependPaths() as $prependPath => $matchKey) {
+            $fullPath = $prependPath !== '' ? $path . '.' . $prependPath : $path;
+            $metadata['prependProps'][] = $fullPath;
+
+            if ($matchKey !== '') {
+                $metadata['matchPropsOn'][$fullPath] = $matchKey;
+            }
+        }
+    }
+
+    /**
+     * Collects once-prop metadata and returns the callback, or `null` when the client already has the prop cached.
+     *
+     * @param list<string> $exceptOnceProps Once-prop keys the client already has cached.
+     *
+     * @phpstan-param array{deferredProps: array<string, list<string>>, mergeProps: list<string>, prependProps: list<string>, deepMergeProps: list<string>, matchPropsOn: array<string, string>, scrollProps: array<string, array<string, mixed>>, onceProps: array<string, array<string, mixed>>} $metadata
+     *
+     * @phpstan-return (Closure(): mixed)|null
+     */
+    private function handleOnceProp(OnceProp $prop, string $path, array $exceptOnceProps, array &$metadata): Closure|null
+    {
+        $onceKey = $prop->getKey() ?? $path;
+
+        if (in_array($onceKey, $exceptOnceProps, true)) {
+            return null;
+        }
+
+        /** @phpstan-var array{prop: string, expiresAt?: int} $onceEntry */
+        $onceEntry = ['prop' => $path];
+
+        $expiresAt = $prop->getExpiresAtMs();
+
+        if ($expiresAt !== null) {
+            $onceEntry['expiresAt'] = $expiresAt;
+        }
+
+        $metadata['onceProps'][$onceKey] = $onceEntry;
+
+        return $prop->getCallback();
+    }
+
+    /**
      * Invokes a closure with zero arguments or with the current request as the single argument, depending on its
      * signature.
      *
@@ -556,11 +642,10 @@ final class Manager extends Component
             $path = $prefix === '' ? (string) $key : $prefix . '.' . $key;
 
             if ($value instanceof DeferredProp) {
-                $group = $value->getGroup();
-                $metadata['deferredProps'][$group][] = $path;
+                $resolved = $this->handleDeferredProp($value, $path, $isPartialReload, $metadata);
 
-                if ($isPartialReload) {
-                    $result[$key] = $value->getCallback();
+                if ($resolved !== null) {
+                    $result[$key] = $resolved;
                 }
 
                 continue;
@@ -582,54 +667,18 @@ final class Manager extends Component
             }
 
             if ($value instanceof MergeProp) {
-                if (!in_array($path, $resetProps, true)) {
-                    $metadata['mergeProps'][] = $path;
-
-                    if ($value->isDeep()) {
-                        $metadata['deepMergeProps'][] = $path;
-                    }
-
-                    foreach ($value->getAppendPaths() as $appendPath => $matchKey) {
-                        $fullPath = $appendPath !== '' ? $path . '.' . $appendPath : $path;
-
-                        if ($matchKey !== '') {
-                            $metadata['matchPropsOn'][$fullPath] = $matchKey;
-                        }
-                    }
-
-                    foreach ($value->getPrependPaths() as $prependPath => $matchKey) {
-                        $fullPath = $prependPath !== '' ? $path . '.' . $prependPath : $path;
-                        $metadata['prependProps'][] = $fullPath;
-
-                        if ($matchKey !== '') {
-                            $metadata['matchPropsOn'][$fullPath] = $matchKey;
-                        }
-                    }
-                }
-
+                $this->handleMergeProp($value, $path, $resetProps, $metadata);
                 $result[$key] = $value->getValue();
 
                 continue;
             }
 
             if ($value instanceof OnceProp) {
-                $onceKey = $value->getKey() ?? $path;
+                $resolved = $this->handleOnceProp($value, $path, $exceptOnceProps, $metadata);
 
-                if (in_array($onceKey, $exceptOnceProps, true)) {
-                    continue;
+                if ($resolved !== null) {
+                    $result[$key] = $resolved;
                 }
-
-                /** @phpstan-var array{prop: string, expiresAt?: int} $onceEntry */
-                $onceEntry = ['prop' => $path];
-
-                $expiresAt = $value->getExpiresAtMs();
-
-                if ($expiresAt !== null) {
-                    $onceEntry['expiresAt'] = $expiresAt;
-                }
-
-                $metadata['onceProps'][$onceKey] = $onceEntry;
-                $result[$key] = $value->getCallback();
 
                 continue;
             }

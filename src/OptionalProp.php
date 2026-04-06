@@ -22,6 +22,7 @@ use Closure;
  *         'activity' => \yii\inertia\Inertia::optional(fn () => $user->getActivityLog()),
  *     ]
  * );
+ * ```
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
  * @since 0.1

@@ -54,6 +54,7 @@ final class Inertia
      *         'config' => \yii\inertia\Inertia::deepMerge($nestedConfig),
      *     ]
      * );
+     * ```
      *
      * @param Closure|mixed $value Value or closure to deep-merge.
      *
@@ -77,6 +78,7 @@ final class Inertia
      *         'roles' => \yii\inertia\Inertia::defer(fn () => Role::find()->all(), 'attributes'),
      *     ]
      * );
+     * ```
      *
      * @param Closure $callback Closure resolved when the client requests this prop.
      * @param string $group Group name for batching deferred requests.
@@ -174,6 +176,7 @@ final class Inertia
      *         'users' => \yii\inertia\Inertia::merge($paginatedUsers)->append('data', matchOn: 'id'),
      *     ]
      * );
+     * ```
      *
      * @param Closure|mixed $value Value or closure to merge.
      *
@@ -196,6 +199,7 @@ final class Inertia
      *         'countries' => \yii\inertia\Inertia::once(fn () => Country::find()->all())->until(3600),
      *     ]
      * );
+     * ```
      *
      * @param Closure $callback Closure resolved once and cached by the client.
      *
