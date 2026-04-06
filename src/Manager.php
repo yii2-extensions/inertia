@@ -222,8 +222,6 @@ final class Manager extends Component
         $version = $this->getVersion();
 
         if ($this->shouldReturnVersionConflict($request, $version)) {
-            $this->reflashSession();
-
             $response->format = Response::FORMAT_RAW;
 
             $response->content = '';
@@ -382,7 +380,7 @@ final class Manager extends Component
      *
      * @phpstan-param array{deferredProps: array<string, list<string>>, mergeProps: list<string>, prependProps: list<string>, deepMergeProps: list<string>, matchPropsOn: array<string, string>, scrollProps: array<string, array<string, mixed>>, onceProps: array<string, array<string, mixed>>} $metadata
      *
-     * @phpstan-return (Closure(): mixed)|null
+     * @phpstan-return (Closure(): mixed)|(Closure(\yii\web\Request): mixed)|null
      */
     private function handleDeferredProp(
         DeferredProp $prop,
@@ -439,7 +437,7 @@ final class Manager extends Component
      *
      * @phpstan-param array{deferredProps: array<string, list<string>>, mergeProps: list<string>, prependProps: list<string>, deepMergeProps: list<string>, matchPropsOn: array<string, string>, scrollProps: array<string, array<string, mixed>>, onceProps: array<string, array<string, mixed>>} $metadata
      *
-     * @phpstan-return (Closure(): mixed)|null
+     * @phpstan-return (Closure(): mixed)|(Closure(\yii\web\Request): mixed)|null
      */
     private function handleOnceProp(OnceProp $prop, string $path, array $exceptOnceProps, array &$metadata): Closure|null
     {
@@ -464,22 +462,20 @@ final class Manager extends Component
     }
 
     /**
-     * Invokes a closure with zero arguments or with the current request as the single argument, depending on its
-     * signature.
+     * Invokes a closure with zero arguments or with the current request, depending on its arity.
+     *
+     * Zero-parameter closures wrapping internal PHP functions (e.g. `Closure::fromCallable('time')`) throw
+     * `ArgumentCountError` when called with extra arguments, so the parameter count must be checked first.
      *
      * @param Closure $closure Closure to invoke.
      *
-     * @phpstan-param Closure(): mixed|Closure(Request): mixed $closure
+     * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $closure
      */
     private function invokeClosure(Closure $closure): mixed
     {
-        $reflection = new ReflectionFunction($closure);
-
-        if ($reflection->getNumberOfRequiredParameters() === 0) {
-            return $closure();
-        }
-
-        return $closure(Yii::$app->getRequest());
+        return (new ReflectionFunction($closure))->getNumberOfParameters() === 0
+            ? $closure()
+            : $closure(Yii::$app->getRequest());
     }
 
     /**
@@ -573,7 +569,7 @@ final class Manager extends Component
      */
     private function parseHeaderList(string|null $value): array
     {
-        if ($value === null || trim($value) === '') {
+        if ($value === null || $value === '') {
             return [];
         }
 
@@ -702,20 +698,6 @@ final class Manager extends Component
         }
 
         return [$result, $alwaysPaths];
-    }
-
-    /**
-     * Re-sets all current session flashes so they survive a version-conflict redirect.
-     */
-    private function reflashSession(): void
-    {
-        if (!Yii::$app->has('session', true)) {
-            return;
-        }
-
-        foreach (Yii::$app->getSession()->getAllFlashes(true) as $key => $value) {
-            Yii::$app->getSession()->setFlash((string) $key, $value);
-        }
     }
 
     /**
