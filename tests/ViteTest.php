@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace yii\inertia\tests;
 
 use yii\base\InvalidConfigException;
-use yii\inertia\tests\support\stub\{MockerFunctions, Vite};
+use yii\inertia\tests\support\stub\MockerFunctions;
+use yii\inertia\Vite;
 
 /**
- * Unit tests for {@see \yii\inertia\BaseVite}.
+ * Unit tests for {@see \yii\inertia\Vite}.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
  * @since 0.1
  */
-final class BaseViteTest extends TestCase
+final class ViteTest extends TestCase
 {
     public function testManifestIsCachedAfterFirstReadAndFileGetContentsRunsOnce(): void
     {
@@ -49,42 +50,6 @@ final class BaseViteTest extends TestCase
             1,
             $callsAfterSecond,
             'Second render tags call must reuse the cached manifest and never re-read the file.',
-        );
-    }
-
-    public function testRenderExtraDevelopmentTagsHookReceivesResolvedDevServerUrlAndIsPrependedToOutput(): void
-    {
-        $vite = new Vite(
-            [
-                'devMode' => true,
-                'devServerUrl' => 'http://localhost:5173/',
-                'extraTags' => [
-                    '<script type="module">/* extra preamble */</script>',
-                ],
-                'entrypoints' => [
-                    'resources/js/app.js',
-                ],
-            ],
-        );
-
-        $tags = $vite->renderTags();
-
-        self::assertSame(
-            'http://localhost:5173',
-            $vite->capturedDevServerUrl,
-            'Extra tags hook should receive the trimmed dev server URL.',
-        );
-        self::assertSame(
-            implode(
-                "\n",
-                [
-                    '<script type="module">/* extra preamble */</script>',
-                    '<script type="module" src="http://localhost:5173/@vite/client"></script>',
-                    '<script type="module" src="http://localhost:5173/resources/js/app.js"></script>',
-                ],
-            ),
-            $tags,
-            "Extra tags should be emitted before the '@vite/client' tag and the 'entrypoint' script.",
         );
     }
 
@@ -313,40 +278,6 @@ final class BaseViteTest extends TestCase
         );
     }
 
-    public function testRenderTagsExtraDevelopmentTagsHookDefaultReturnsEmptyList(): void
-    {
-        $vite = new Vite(
-            [
-                'devMode' => true,
-                'devServerUrl' => 'http://localhost:5173',
-                'entrypoints' => [
-                    'resources/js/app.js',
-                ],
-            ],
-        );
-
-        $tags = $vite->renderTags();
-
-        self::assertSame(
-            implode(
-                "\n",
-                [
-                    '<script type="module" src="http://localhost:5173/@vite/client"></script>',
-                    '<script type="module" src="http://localhost:5173/resources/js/app.js"></script>',
-                ],
-            ),
-            $tags,
-            "When no extra tags are configured the development output must contain only the '@vite/client' tag "
-            . "and the 'entrypoint' script.",
-        );
-        self::assertSame(
-            'http://localhost:5173',
-            $vite->capturedDevServerUrl,
-            'The extra tags hook must still be invoked with the resolved dev server URL even when it returns an '
-            . 'empty list.',
-        );
-    }
-
     public function testRenderTagsFiltersBlankEntrypoints(): void
     {
         $vite = new Vite(
@@ -522,6 +453,47 @@ final class BaseViteTest extends TestCase
             'assets/shared-abc123.css',
             $tags,
             'CSS files from imported chunks should be included in the output.',
+        );
+    }
+
+    public function testRenderTagsPreambleProviderReceivesResolvedDevServerUrlAndIsPrependedToOutput(): void
+    {
+        $capturedDevServerUrl = null;
+
+        $vite = new Vite(
+            [
+                'devMode' => true,
+                'devServerUrl' => 'http://localhost:5173/',
+                'preambleProvider' => static function (string $devServerUrl) use (&$capturedDevServerUrl): string {
+                    $capturedDevServerUrl = $devServerUrl;
+
+                    return '/* extra preamble */';
+                },
+                'entrypoints' => [
+                    'resources/js/app.js',
+                ],
+            ],
+        );
+
+        $tags = $vite->renderTags();
+
+        self::assertSame(
+            'http://localhost:5173',
+            $capturedDevServerUrl,
+            "The 'preambleProvider' closure must receive the trimmed dev server URL.",
+        );
+        self::assertSame(
+            implode(
+                "\n",
+                [
+                    '<script type="module">/* extra preamble */</script>',
+                    '<script type="module" src="http://localhost:5173/@vite/client"></script>',
+                    '<script type="module" src="http://localhost:5173/resources/js/app.js"></script>',
+                ],
+            ),
+            $tags,
+            "The 'preambleProvider' return value must be wrapped in a module script tag and emitted before "
+            . "the '@vite/client' tag and the entrypoint script.",
         );
     }
 
@@ -710,6 +682,34 @@ final class BaseViteTest extends TestCase
             '<link href="/build/assets/utils-def456.js" rel="modulepreload">',
             $tags,
             "Utils imported chunk should have a 'modulepreload' tag.",
+        );
+    }
+
+    public function testRenderTagsWithoutPreambleProviderEmitsNoPreambleScript(): void
+    {
+        $vite = new Vite(
+            [
+                'devMode' => true,
+                'devServerUrl' => 'http://localhost:5173',
+                'entrypoints' => [
+                    'resources/js/app.js',
+                ],
+            ],
+        );
+
+        $tags = $vite->renderTags();
+
+        self::assertSame(
+            implode(
+                "\n",
+                [
+                    '<script type="module" src="http://localhost:5173/@vite/client"></script>',
+                    '<script type="module" src="http://localhost:5173/resources/js/app.js"></script>',
+                ],
+            ),
+            $tags,
+            "When 'preambleProvider' is null the development output must contain only the '@vite/client' tag and "
+            . 'the entrypoint script, with no preceding preamble script.',
         );
     }
 
