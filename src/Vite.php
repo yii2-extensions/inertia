@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace yii\inertia;
 
+use Closure;
 use Throwable;
 use Yii;
 use yii\base\{Component, InvalidConfigException};
@@ -14,14 +15,14 @@ use function is_string;
 use function sprintf;
 
 /**
- * Base Vite entrypoint renderer for Inertia adapters.
+ * Vite entrypoint renderer for Inertia adapters.
  *
  * Provides a development mode that points directly to the Vite dev server, and a production mode that reads Vite's
  * manifest file and renders stylesheets, module entry scripts, and optional modulepreload tags.
  *
- * Subclasses may override {@see renderExtraDevelopmentTags()} to inject framework-specific bootstrap tags (for
- * example, the React Refresh preamble used by `@vitejs/plugin-react` on traditional backends) ahead of the
- * `@vite/client` script in development mode.
+ * Framework-specific bootstrap scripts (for example, the React Refresh preamble required by `@vitejs/plugin-react`
+ * on traditional backends) are injected via the {@see $preambleProvider} closure, configured by each adapter's
+ * `Bootstrap`. The base class itself stays agnostic of any client framework.
  *
  * Usage example:
  *
@@ -30,7 +31,7 @@ use function sprintf;
  * return [
  *     'components' => [
  *         'inertiaVite' => [
- *             'class' => \yii\inertia\vue\Vite::class,
+ *             'class' => \yii\inertia\Vite::class,
  *             'manifestPath' => '@webroot/build/.vite/manifest.json',
  *             'baseUrl' => '@web/build',
  *             'entrypoints' => ['resources/js/app.js'],
@@ -44,7 +45,7 @@ use function sprintf;
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
  * @since 0.1
  */
-abstract class BaseVite extends Component
+final class Vite extends Component
 {
     /**
      * Base URL prefix for built assets referenced by the Vite manifest.
@@ -74,6 +75,17 @@ abstract class BaseVite extends Component
      * Whether to render `modulepreload` tags for imported JavaScript chunks in production mode.
      */
     public bool $modulePreload = true;
+    /**
+     * Closure that returns a development-mode preamble script body to be emitted before the `@vite/client` tag.
+     *
+     * Receives the resolved (trimmed) Vite dev server URL and must return the inline JavaScript body that will be
+     * wrapped in a `<script type="module">` tag. Set to `null` (default) to skip the preamble entirely.
+     *
+     * Adapter packages register their own preamble closure in their `Bootstrap`; user config may override or unset it.
+     *
+     * @phpstan-var (Closure(string): string)|null
+     */
+    public Closure|null $preambleProvider = null;
 
     /**
      * @phpstan-var array<string, array<string, mixed>>|null Cached Vite manifest contents.
@@ -113,23 +125,6 @@ abstract class BaseVite extends Component
         return $this->devMode
             ? $this->renderDevelopmentTags($entrypoints)
             : $this->renderBuildTags($entrypoints);
-    }
-
-    /**
-     * Returns extra development-mode tags emitted before the `@vite/client` script tag.
-     *
-     * Override in subclasses to inject framework-specific bootstrap tags (for example, the React Refresh preamble).
-     * The default implementation returns an empty list.
-     *
-     * @param string $devServerUrl Resolved Vite dev server base URL without trailing slash.
-     *
-     * @return array Extra HTML tags to prepend to the development output.
-     *
-     * @phpstan-return string[]
-     */
-    protected function renderExtraDevelopmentTags(string $devServerUrl): array
-    {
-        return [];
     }
 
     /**
@@ -279,8 +274,8 @@ abstract class BaseVite extends Component
     /**
      * Validates and normalizes entrypoints into a non-empty list of trimmed strings.
      *
-     * Downstream rendering deduplicates by output file path, so this method does not need to remove duplicates from the
-     * source entrypoint list.
+     * Downstream rendering deduplicates by output file path, so this method does not need to remove duplicates from
+     * the source entrypoint list.
      *
      * @param array|string $entrypoints Raw entrypoints to normalize.
      *
@@ -436,8 +431,8 @@ abstract class BaseVite extends Component
     /**
      * Renders development-mode script tags pointing to the Vite dev server.
      *
-     * Emits any subclass-provided extra tags via {@see renderExtraDevelopmentTags()}, then the `@vite/client` script
-     * (when enabled), then one module script per entrypoint.
+     * Emits the {@see $preambleProvider} closure result wrapped in a module script tag (when set), then the
+     * `@vite/client` script (when {@see $includeViteClient} is enabled), then one module script per entrypoint.
      *
      * @param array $entrypoints Normalized list of entrypoint paths.
      *
@@ -448,14 +443,22 @@ abstract class BaseVite extends Component
     private function renderDevelopmentTags(array $entrypoints): string
     {
         $devServerUrl = $this->resolveDevServerUrl();
-        $tags = $this->renderExtraDevelopmentTags($devServerUrl);
+
+        $tags = [];
+
+        if ($this->preambleProvider !== null) {
+            $tags[] = Html::script(
+                ($this->preambleProvider)($devServerUrl),
+                ['type' => 'module'],
+            );
+        }
 
         if ($this->includeViteClient) {
-            $tags[] = Html::jsFile($devServerUrl . '/@vite/client', ['type' => 'module']);
+            $tags[] = Html::jsFile("{$devServerUrl}/@vite/client", ['type' => 'module']);
         }
 
         foreach ($entrypoints as $entrypoint) {
-            $tags[] = Html::jsFile($devServerUrl . '/' . ltrim($entrypoint, '/'), ['type' => 'module']);
+            $tags[] = Html::jsFile("{$devServerUrl}/" . ltrim($entrypoint, '/'), ['type' => 'module']);
         }
 
         return implode("\n", $tags);

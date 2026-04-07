@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace yii\inertia\tests;
 
 use yii\base\InvalidConfigException;
-use yii\inertia\tests\support\stub\{MockerFunctions, Vite};
+use yii\inertia\tests\support\stub\MockerFunctions;
+use yii\inertia\Vite;
 
 /**
- * Unit tests for {@see \yii\inertia\BaseVite}.
+ * Unit tests for {@see \yii\inertia\Vite}.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
  * @since 0.1
  */
-final class BaseViteTest extends TestCase
+final class ViteTest extends TestCase
 {
     public function testManifestIsCachedAfterFirstReadAndFileGetContentsRunsOnce(): void
     {
@@ -52,15 +53,19 @@ final class BaseViteTest extends TestCase
         );
     }
 
-    public function testRenderExtraDevelopmentTagsHookReceivesResolvedDevServerUrlAndIsPrependedToOutput(): void
+    public function testRenderTagsPreambleProviderReceivesResolvedDevServerUrlAndIsPrependedToOutput(): void
     {
+        $capturedDevServerUrl = null;
+
         $vite = new Vite(
             [
                 'devMode' => true,
                 'devServerUrl' => 'http://localhost:5173/',
-                'extraTags' => [
-                    '<script type="module">/* extra preamble */</script>',
-                ],
+                'preambleProvider' => static function (string $devServerUrl) use (&$capturedDevServerUrl): string {
+                    $capturedDevServerUrl = $devServerUrl;
+
+                    return '/* extra preamble */';
+                },
                 'entrypoints' => [
                     'resources/js/app.js',
                 ],
@@ -71,8 +76,8 @@ final class BaseViteTest extends TestCase
 
         self::assertSame(
             'http://localhost:5173',
-            $vite->capturedDevServerUrl,
-            'Extra tags hook should receive the trimmed dev server URL.',
+            $capturedDevServerUrl,
+            "The 'preambleProvider' closure must receive the trimmed dev server URL.",
         );
         self::assertSame(
             implode(
@@ -84,7 +89,8 @@ final class BaseViteTest extends TestCase
                 ],
             ),
             $tags,
-            "Extra tags should be emitted before the '@vite/client' tag and the 'entrypoint' script.",
+            "The 'preambleProvider' return value must be wrapped in a module script tag and emitted before "
+            . "the '@vite/client' tag and the entrypoint script.",
         );
     }
 
@@ -313,7 +319,7 @@ final class BaseViteTest extends TestCase
         );
     }
 
-    public function testRenderTagsExtraDevelopmentTagsHookDefaultReturnsEmptyList(): void
+    public function testRenderTagsWithoutPreambleProviderEmitsNoPreambleScript(): void
     {
         $vite = new Vite(
             [
@@ -336,14 +342,8 @@ final class BaseViteTest extends TestCase
                 ],
             ),
             $tags,
-            "When no extra tags are configured the development output must contain only the '@vite/client' tag "
-            . "and the 'entrypoint' script.",
-        );
-        self::assertSame(
-            'http://localhost:5173',
-            $vite->capturedDevServerUrl,
-            'The extra tags hook must still be invoked with the resolved dev server URL even when it returns an '
-            . 'empty list.',
+            "When 'preambleProvider' is null the development output must contain only the '@vite/client' tag and "
+            . 'the entrypoint script, with no preceding preamble script.',
         );
     }
 
