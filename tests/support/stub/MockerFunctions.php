@@ -7,9 +7,13 @@ namespace yii\inertia\tests\support\stub;
 /**
  * Stateful stub for internal PHP functions hijacked during test execution.
  *
- * Provides deterministic replacements for `file_get_contents`, `trim`, and `unserialize` so unit and mutation tests
- * can simulate failure modes, count invocations, and verify exact arguments without touching the real filesystem or
- * relying on PHP's native error reporting.
+ * Provides minimal observability and failure injection for `file_get_contents`, `trim`, and `unserialize`:
+ *
+ * - `file_get_contents`: counts invocations and can be forced to return `false` to simulate an unreadable file.
+ *   Successful reads still delegate to PHP's native function and the filename/optional arguments are NOT captured.
+ * - `trim`: records whether it has been invoked at least once and delegates to the native function.
+ * - `unserialize`: records every invocation with its `$data` and `$options` for exact-argument verification, then
+ *   delegates to the native function with notices suppressed.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
  * @since 0.1
@@ -44,7 +48,7 @@ final class MockerFunctions
      * @return false|string File contents on success, or `false` when failure is simulated or the underlying call
      * fails.
      */
-    public static function file_get_contents(string $filename, mixed ...$args): string|false
+    public static function file_get_contents(string $filename, mixed ...$args): false|string
     {
         self::$fileGetContentsCalls++;
 

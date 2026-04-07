@@ -461,6 +461,28 @@ final class BaseViteTest extends TestCase
         );
     }
 
+    public function testRenderTagsHandlesNonArrayCssEntry(): void
+    {
+        $vite = new Vite(
+            [
+                'manifestPath' => '@tests/data/non-array-css-manifest.json',
+                'baseUrl' => '@web/build',
+                'entrypoints' => [
+                    'resources/js/app.js',
+                ],
+            ],
+        );
+
+        $tags = $vite->renderTags();
+
+        self::assertSame(
+            '<script type="module" src="/build/assets/app-abc123.js"></script>',
+            $tags,
+            "Non-array 'css' value on a manifest chunk must be silently skipped by 'collectCssFiles' and "
+            . 'produce only the entry script tag, never a stylesheet tag.',
+        );
+    }
+
     public function testRenderTagsHandlesNonArrayImports(): void
     {
         $vite = new Vite(
@@ -479,27 +501,6 @@ final class BaseViteTest extends TestCase
             '<script type="module" src="/build/assets/app-abc123.js"></script>',
             $tags,
             'Non-array imports value should be silently skipped without errors and produce only the entry script tag.',
-        );
-    }
-
-    public function testRenderTagsHandlesNonArrayCssEntry(): void
-    {
-        $vite = new Vite(
-            [
-                'manifestPath' => '@tests/data/non-array-css-manifest.json',
-                'baseUrl' => '@web/build',
-                'entrypoints' => [
-                    'resources/js/app.js',
-                ],
-            ],
-        );
-
-        $tags = $vite->renderTags();
-
-        self::assertSame(
-            '<script type="module" src="/build/assets/app-abc123.js"></script>',
-            $tags,
-            'Non-array `css` value on a manifest chunk must be silently skipped by `collectCssFiles()` and produce only the entry script tag, never a stylesheet tag.',
         );
     }
 
@@ -546,7 +547,7 @@ final class BaseViteTest extends TestCase
         );
     }
 
-    public function testRenderTagsPreloadSkipsCssChunksBeforeJsChunks(): void
+    public function testRenderTagsPreloadSkipsCssChunksAndContinuesWithLaterJsChunks(): void
     {
         $vite = new Vite(
             [
@@ -561,9 +562,15 @@ final class BaseViteTest extends TestCase
         $tags = $vite->renderTags();
 
         self::assertStringNotContainsString(
-            'modulepreload',
+            'shared-styles.css" rel="modulepreload"',
             $tags,
-            "Imported chunk whose file ends in '.css' should not get a 'modulepreload' tag.",
+            "Imported chunk whose file ends in '.css' must not be emitted as a 'modulepreload' link.",
+        );
+        self::assertStringContainsString(
+            '<link href="/build/assets/after-css.js" rel="modulepreload">',
+            $tags,
+            'A JS imported chunk that appears AFTER a CSS chunk in the imports list must still be emitted as a '
+            . "'modulepreload', proving the CSS chunk is skipped without aborting the loop.",
         );
     }
 
