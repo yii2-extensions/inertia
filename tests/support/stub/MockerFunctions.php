@@ -41,7 +41,7 @@ final class MockerFunctions
      * @param string $filename Filesystem path forwarded to the native function.
      * @param mixed ...$args Optional positional arguments forwarded verbatim to the native function.
      *
-     * @return string|false File contents on success, or `false` when failure is simulated or the underlying call
+     * @return false|string File contents on success, or `false` when failure is simulated or the underlying call
      * fails.
      */
     public static function file_get_contents(string $filename, mixed ...$args): string|false
