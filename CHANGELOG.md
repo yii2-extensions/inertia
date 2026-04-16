@@ -21,3 +21,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - chore: rename package and documentation references from `yii2-framework` to `yii2-extensions` after organization move.
 - docs: update PHP version requirement to `8.3` in installation docs and align related `README.md` links.
 - chore: update PHP version to `8.3` in `.styleci.yml`; enhance SVG features documentation for clarity and consistency and adjust logo source in `README.md`.
+- docs: document the `\yii\inertia\Vite` dev server / HMR behavior in `README.md`, with pointers to the React and Vue adapter packages for framework-specific setup.

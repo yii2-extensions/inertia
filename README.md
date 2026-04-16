@@ -118,6 +118,32 @@ return [
 ];
 ```
 
+## Dev server support (Vite)
+
+The bundled `\yii\inertia\Vite` helper component renders asset tags for both development and production. When `devMode`
+is `true`, it emits `@vite/client` plus each configured entrypoint from `devServerUrl`, enabling Vite's HMR WebSocket
+end-to-end. When `devMode` is `false`, it reads the manifest at `manifestPath` and renders hashed asset tags for
+production.
+
+Typical development flow: run `npm run dev` to start the Vite dev server and launch Yii2 with a dev environment flag
+(for example, `YII_ENV=dev ./yii serve`). `YII_ENV` does not toggle `Vite::$devMode` on its own; your application
+configuration must wire the two together, for example:
+
+```php
+'components' => [
+    'inertiaVite' => [
+        'class' => \yii\inertia\Vite::class,
+        'devMode' => YII_ENV === 'dev',
+        // ...
+    ],
+],
+```
+
+For framework-specific setup, see:
+
+- [`yii2-extensions/inertia-react`](https://github.com/yii2-extensions/inertia-react) — React Refresh preamble auto-injection.
+- [`yii2-extensions/inertia-vue`](https://github.com/yii2-extensions/inertia-vue) — Vue HMR (no extra preamble).
+
 ## Prop types (v3)
 
 The package supports the Inertia v3 prop types for fine-grained control over when and how props are resolved:
