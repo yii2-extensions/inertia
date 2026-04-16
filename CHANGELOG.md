@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
-## 0.1.0 Under development
+## 0.1.0 April 16, 2026
 
 - feat: initial `yii2-extensions/inertia` package structure.
 - docs: standardize documentation style, feature SVGs, cross-navigation, and `testing.md` to match `yii2-extensions/jquery` conventions.
