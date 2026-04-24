@@ -54,6 +54,7 @@ final class InertiaRendererTest extends TestCase
             'HTML shell should embed the page component identifier.',
         );
     }
+
     public function testRenderReturnsInertiaJsonResponseForInertiaRequest(): void
     {
         $this->prepareInertiaRequest();
