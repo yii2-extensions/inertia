@@ -12,7 +12,7 @@ use yii\inertia\Vite;
  * Unit tests for {@see \yii\inertia\Vite}.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class ViteTest extends TestCase
 {

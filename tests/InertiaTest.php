@@ -15,7 +15,7 @@ use yii\web\Response;
  * Unit tests for {@see Inertia} static facade.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class InertiaTest extends TestCase
 {

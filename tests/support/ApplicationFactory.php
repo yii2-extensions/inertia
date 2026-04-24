@@ -13,7 +13,7 @@ use yii\web\Application;
  * Creates Yii application instances for tests.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class ApplicationFactory
 {

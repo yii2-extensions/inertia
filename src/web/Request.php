@@ -31,14 +31,12 @@ use function is_array;
  * ```
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 class Request extends \yii\web\Request
 {
     /**
-     * Cookie options. `httpOnly` is `false` so JavaScript can read the CSRF token.
-     *
-     * @phpstan-var mixed[]
+     * @var mixed[] Cookie options. `httpOnly` is `false` so JavaScript can read the CSRF token.
      */
     public $csrfCookie = ['httpOnly' => false];
     /**

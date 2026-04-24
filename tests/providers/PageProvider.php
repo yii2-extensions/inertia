@@ -10,7 +10,7 @@ namespace yii\inertia\tests\providers;
  * Provides representative input/output pairs for page payload serialization.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class PageProvider
 {

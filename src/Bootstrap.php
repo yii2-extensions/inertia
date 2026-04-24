@@ -6,6 +6,7 @@ namespace yii\inertia;
 
 use Yii;
 use yii\base\{BootstrapInterface, Event};
+use yii\inertia\web\{InertiaRenderer, ResponseRendererInterface};
 use yii\web\Response;
 
 use function in_array;
@@ -14,10 +15,11 @@ use function in_array;
  * Bootstraps the Inertia integration layer.
  *
  * Registers the `inertia` application component when it is missing, exposes the `@inertia` alias for the package source
- * directory, and normalizes Yii AJAX redirects so they follow the Inertia protocol.
+ * directory, binds {@see \yii\inertia\web\ResponseRendererInterface} to {@see \yii\inertia\web\InertiaRenderer} in the
+ * DI container, and normalizes Yii AJAX redirects so they follow the Inertia protocol.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class Bootstrap implements BootstrapInterface
 {
@@ -31,6 +33,8 @@ final class Bootstrap implements BootstrapInterface
         if (!$app->has('inertia')) {
             $app->set('inertia', ['class' => Manager::class]);
         }
+
+        Yii::$container->setSingleton(ResponseRendererInterface::class, InertiaRenderer::class);
 
         $app->getResponse()->on(
             Response::EVENT_BEFORE_SEND,

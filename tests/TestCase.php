@@ -15,7 +15,7 @@ use yii\web\Response;
  * Base test case for inertia tests.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {

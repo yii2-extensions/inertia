@@ -25,18 +25,20 @@ use Closure;
  * ```
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class MergeProp
 {
     /**
-     * @phpstan-var array<string, string> Paths mapped to their match-on keys for append operations.
+     * @var array<string, string> Paths mapped to their match-on keys for append operations.
      */
     private array $appendPaths = [];
-    private bool $deep = false;
-
     /**
-     * @phpstan-var array<string, string> Paths mapped to their match-on keys for prepend operations.
+     * Whether to perform a deep recursive merge instead of a shallow merge.
+     */
+    private bool $deep = false;
+    /**
+     * @var array<string, string> Paths mapped to their match-on keys for prepend operations.
      */
     private array $prependPaths = [];
 
@@ -54,12 +56,11 @@ final class MergeProp
      * \yii\inertia\Inertia::merge($users)->append('data', matchOn: 'id');
      * ```
      *
-     * @param array|string $paths Path or paths where append applies, or an associative map of `path => matchKey`.
+     * @param array<int|string, string>|string $paths Path or paths where append applies, or an associative map of
+     * `path => matchKey`.
      * @param string|null $matchOn Default match key for deduplication when `$paths` is a flat list.
      *
      * @return self New instance with the updated configuration.
-     *
-     * @phpstan-param array<int|string, string>|string $paths
      */
     public function append(array|string $paths = [], string|null $matchOn = null): self
     {
@@ -98,9 +99,7 @@ final class MergeProp
      * $paths = $merge->getAppendPaths(); // ['data' => 'id']
      * ```
      *
-     * @return array Associative map of `path => matchKey`.
-     *
-     * @phpstan-return array<string, string>
+     * @return array<string, string> Associative map of `path => matchKey`.
      */
     public function getAppendPaths(): array
     {
@@ -117,9 +116,7 @@ final class MergeProp
      * $paths = $merge->getPrependPaths(); // ['messages' => '']
      * ```
      *
-     * @return array Associative map of `path => matchKey`.
-     *
-     * @phpstan-return array<string, string>
+     * @return array<string, string> Associative map of `path => matchKey`.
      */
     public function getPrependPaths(): array
     {
@@ -169,12 +166,11 @@ final class MergeProp
      * \yii\inertia\Inertia::merge($messages)->prepend('data');
      * ```
      *
-     * @param array|string $paths Path or paths where prepend applies, or an associative map of `path => matchKey`.
+     * @param array<int|string, string>|string $paths Path or paths where prepend applies, or an associative map of
+     * `path => matchKey`.
      * @param string|null $matchOn Default match key for deduplication when `$paths` is a flat list.
      *
      * @return self New instance with the updated configuration.
-     *
-     * @phpstan-param array<int|string, string>|string $paths
      */
     public function prepend(array|string $paths = [], string|null $matchOn = null): self
     {
@@ -187,13 +183,11 @@ final class MergeProp
     /**
      * Normalizes input paths into an associative map of `path => matchKey` for append/prepend operations.
      *
-     * @param array|string $paths Path or paths to normalize, or an associative map of `path => matchKey`.
+     * @param array<int|string, string>|string $paths Path or paths to normalize, or an associative map of
+     * `path => matchKey`.
      * @param string|null $matchOn Default match key for deduplication when `$paths` is a flat list.
      *
-     * @return array Normalized associative map of `path => matchKey` for append/prepend operations.
-     *
-     * @phpstan-param array<int|string, string>|string $paths
-     * @phpstan-return array<string, string>
+     * @return array<string, string> Normalized associative map of `path => matchKey` for append/prepend operations.
      */
     private function normalizePaths(array|string $paths, string|null $matchOn): array
     {

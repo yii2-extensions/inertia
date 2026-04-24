@@ -12,7 +12,7 @@ use yii\inertia\OnceProp;
  * Unit tests for {@see OnceProp}.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class OncePropTest extends TestCase
 {

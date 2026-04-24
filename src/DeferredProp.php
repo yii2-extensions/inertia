@@ -24,15 +24,14 @@ use Closure;
  * ```
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class DeferredProp
 {
     /**
-     * @param Closure $callback Closure resolved when the client requests this prop.
+     * @param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback Closure resolved when the client requests
+     * this prop.
      * @param string $group Group name for batching deferred requests.
-     *
-     * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback
      */
     public function __construct(private readonly Closure $callback, private readonly string $group = 'default') {}
 
@@ -46,9 +45,8 @@ final class DeferredProp
      * $callback = $deferred->getCallback();
      * ```
      *
-     * @return Closure Closure to be evaluated when the client requests this prop.
-     *
-     * @phpstan-return (Closure(): mixed)|(Closure(\yii\web\Request): mixed)
+     * @return (Closure(): mixed)|(Closure(\yii\web\Request): mixed) Closure to be evaluated when the client requests
+     * this prop.
      */
     public function getCallback(): Closure
     {

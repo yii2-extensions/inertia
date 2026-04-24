@@ -26,17 +26,22 @@ use DateTimeInterface;
  * ```
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class OnceProp
 {
+    /**
+     * Expiration timestamp in milliseconds, or `null` for no expiration.
+     */
     private int|null $expiresAtMs = null;
+    /**
+     * Custom cache key for this prop, or `null` to use the prop path as the key.
+     */
     private string|null $key = null;
 
     /**
-     * @param Closure $callback Closure resolved once and cached by the client.
-     *
-     * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback
+     * @param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback Closure resolved once and cached by the
+     * client.
      */
     public function __construct(private readonly Closure $callback) {}
 
@@ -71,9 +76,7 @@ final class OnceProp
      * $callback = $once->getCallback();
      * ```
      *
-     * @return Closure Callback that produces the once-prop value.
-     *
-     * @phpstan-return (Closure(): mixed)|(Closure(\yii\web\Request): mixed)
+     * @return (Closure(): mixed)|(Closure(\yii\web\Request): mixed) Callback that produces the once-prop value.
      */
     public function getCallback(): Closure
     {
