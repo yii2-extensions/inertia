@@ -95,6 +95,32 @@ final class SiteController extends Controller
 }
 ```
 
+Or inject the renderer contract. `Bootstrap` binds `ResponseRendererInterface` to `InertiaRenderer` in the DI container,
+so the action stays decoupled from the Inertia implementation and overlays (Inertia, JSON, API) can swap the renderer
+without rewriting controller code:
+
+```php
+use yii\inertia\web\ResponseRendererInterface;
+use yii\web\{Controller, Response};
+
+final class SiteController extends Controller
+{
+    public function __construct(
+        $id,
+        $module,
+        private readonly ResponseRendererInterface $renderer,
+        $config = [],
+    ) {
+        parent::__construct($id, $module, $config);
+    }
+
+    public function actionIndex(): Response|string
+    {
+        return $this->renderer->render('Dashboard', ['stats' => ['visits' => 42]]);
+    }
+}
+```
+
 ## Configuration example
 
 ```php
