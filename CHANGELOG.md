@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ## 0.1.1 Under development
 
+- feat: add `web\ResponseRendererInterface` and `web\InertiaRenderer`; `Bootstrap` binds the interface to the Inertia renderer so controllers can delegate the presentation strategy via DI.
+
 ## 0.1.0 April 16, 2026
 
 - feat: initial `yii2-extensions/inertia` package structure.

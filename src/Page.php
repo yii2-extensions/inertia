@@ -20,60 +20,57 @@ use JsonSerializable;
  * ```
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class Page implements JsonSerializable
 {
-    private bool $clearHistory = false;
-
     /**
-     * @phpstan-var list<string>
+     * Whether to clear the page history, preventing back navigation to previous pages.
+     */
+    private bool $clearHistory = false;
+    /**
+     * @var list<string> Prop paths the client should recursively deep-merge instead of shallow merging.
      */
     private array $deepMergeProps = [];
-
     /**
-     * @phpstan-var array<string, list<string>>
+     * @var array<string, list<string>> Deferred props metadata.
      */
     private array $deferredProps = [];
-    private bool $encryptHistory = false;
-
     /**
-     * @phpstan-var array<string, mixed>
+     * Whether to encrypt the page history for enhanced security.
+     */
+    private bool $encryptHistory = false;
+    /**
+     * @var array<string, mixed> Flash messages to be displayed on the next page load.
      */
     private array $flash = [];
-
     /**
-     * @phpstan-var array<string, string>
+     * @var array<string, string> Props to match on for conditional updates.
      */
     private array $matchPropsOn = [];
-
     /**
-     * @phpstan-var list<string>
+     * @var list<string> Props to merge with existing ones on the client side.
      */
     private array $mergeProps = [];
 
     /**
-     * @phpstan-var array<string, array<string, mixed>>
+     * @var array<string, array<string, mixed>> Once props metadata.
      */
     private array $onceProps = [];
-
     /**
-     * @phpstan-var list<string>
+     * @var list<string> Props to prepend to existing ones on the client side.
      */
     private array $prependProps = [];
-
     /**
-     * @phpstan-var array<string, array<string, mixed>>
+     * @var array<string, array<string, mixed>> Scroll props metadata.
      */
     private array $scrollProps = [];
 
     /**
      * @param string $component Frontend component name.
-     * @param array $props Props forwarded to the frontend component.
+     * @param array<string, mixed> $props Props forwarded to the frontend component.
      * @param string $url Current request URL included in the page payload.
      * @param int|string $version Asset version used for client-side mismatch detection.
-     *
-     * @phpstan-param array<string, mixed> $props
      */
     public function __construct(
         private readonly string $component,
@@ -92,9 +89,7 @@ final class Page implements JsonSerializable
      * $payload = $page->jsonSerialize();
      * ```
      *
-     * @return array Page payload as an associative array ready for JSON serialization.
-     *
-     * @phpstan-return array{
+     * @return array{
      *   component: string,
      *   props: array<string, mixed>,
      *   url: string,
@@ -109,7 +104,7 @@ final class Page implements JsonSerializable
      *   matchPropsOn?: array<string, string>,
      *   scrollProps?: array<string, array<string, mixed>>,
      *   onceProps?: array<string, array<string, mixed>>,
-     * }
+     * } Page payload as an associative array ready for JSON serialization.
      */
     public function jsonSerialize(): array
     {
@@ -195,11 +190,9 @@ final class Page implements JsonSerializable
      *     ->withDeepMergeProps(['config']);
      * ```
      *
-     * @param array $deepMergeProps Prop paths the client should recursively deep-merge.
+     * @param list<string> $deepMergeProps Prop paths the client should recursively deep-merge.
      *
      * @return self New instance with the updated deepMergeProps.
-     *
-     * @phpstan-param list<string> $deepMergeProps
      */
     public function withDeepMergeProps(array $deepMergeProps): self
     {
@@ -219,11 +212,9 @@ final class Page implements JsonSerializable
      *     ->withDeferredProps(['default' => ['users', 'roles']]);
      * ```
      *
-     * @param array $deferredProps Map of group name to prop keys for deferred loading.
+     * @param array<string, list<string>> $deferredProps Map of group name to prop keys for deferred loading.
      *
      * @return self New instance with the updated deferredProps.
-     *
-     * @phpstan-param array<string, list<string>> $deferredProps
      */
     public function withDeferredProps(array $deferredProps): self
     {
@@ -265,11 +256,9 @@ final class Page implements JsonSerializable
      *     ->withFlash(['success' => 'Saved.']);
      * ```
      *
-     * @param array $flash Session flash data exposed outside `props`.
+     * @param array<string, mixed> $flash Session flash data exposed outside `props`.
      *
      * @return self New instance with the updated flash data.
-     *
-     * @phpstan-param array<string, mixed> $flash
      */
     public function withFlash(array $flash): self
     {
@@ -289,11 +278,9 @@ final class Page implements JsonSerializable
      *     ->withMatchPropsOn(['users.data' => 'id']);
      * ```
      *
-     * @param array $matchPropsOn Map of prop path to match key for deduplication during merge.
+     * @param array<string, string> $matchPropsOn Map of prop path to match key for deduplication during merge.
      *
      * @return self New instance with the updated matchPropsOn.
-     *
-     * @phpstan-param array<string, string> $matchPropsOn
      */
     public function withMatchPropsOn(array $matchPropsOn): self
     {
@@ -313,11 +300,9 @@ final class Page implements JsonSerializable
      *     ->withMergeProps(['users']);
      * ```
      *
-     * @param array $mergeProps Prop paths the client should shallow-merge instead of replacing.
+     * @param list<string> $mergeProps Prop paths the client should shallow-merge instead of replacing.
      *
      * @return self New instance with the updated mergeProps.
-     *
-     * @phpstan-param list<string> $mergeProps
      */
     public function withMergeProps(array $mergeProps): self
     {
@@ -337,11 +322,9 @@ final class Page implements JsonSerializable
      *     ->withOnceProps(['countries' => ['prop' => 'countries', 'expiresAt' => 1700000000000]]);
      * ```
      *
-     * @param array $onceProps Once-prop metadata with optional expiration timestamps.
+     * @param array<string, array<string, mixed>> $onceProps Once-prop metadata with optional expiration timestamps.
      *
      * @return self New instance with the updated onceProps.
-     *
-     * @phpstan-param array<string, array<string, mixed>> $onceProps
      */
     public function withOnceProps(array $onceProps): self
     {
@@ -361,11 +344,9 @@ final class Page implements JsonSerializable
      *     ->withPrependProps(['messages']);
      * ```
      *
-     * @param array $prependProps Prop paths the client should prepend instead of appending.
+     * @param list<string> $prependProps Prop paths the client should prepend instead of appending.
      *
      * @return self New instance with the updated prependProps.
-     *
-     * @phpstan-param list<string> $prependProps
      */
     public function withPrependProps(array $prependProps): self
     {
@@ -385,11 +366,9 @@ final class Page implements JsonSerializable
      *     ->withScrollProps(['posts' => ['pageName' => 'page', 'currentPage' => 1, 'nextPage' => 2]]);
      * ```
      *
-     * @param array $scrollProps Infinite scroll pagination metadata per prop.
+     * @param array<string, array<string, mixed>> $scrollProps Infinite scroll pagination metadata per prop.
      *
      * @return self New instance with the updated scrollProps.
-     *
-     * @phpstan-param array<string, array<string, mixed>> $scrollProps
      */
     public function withScrollProps(array $scrollProps): self
     {

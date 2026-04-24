@@ -41,7 +41,7 @@ use function is_string;
  * ```
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class Manager extends Component
 {
@@ -58,12 +58,12 @@ final class Manager extends Component
      */
     public string $rootView = '@inertia/views/app.php';
     /**
-     * @phpstan-var array<string, mixed> Shared props applied to every rendered page in the current request.
+     * @var array<string, mixed> Shared props applied to every rendered page in the current request.
      */
     public array $shared = [];
     /**
-     * @phpstan-var (Closure(): (int|string|null))|(Closure(Request): (int|string|null))|int|string|null Asset version
-     * used for client-side mismatch detection via the `version` page field.
+     * @var (Closure(): (int|string|null))|(Closure(Request): (int|string|null))|int|string|null Asset version used for
+     * client-side mismatch detection via the `version` page field.
      */
     public Closure|int|string|null $version = null;
 
@@ -163,11 +163,9 @@ final class Manager extends Component
      * return \yii\inertia\Inertia::location(['site/index']);
      * ```
      *
-     * @param array|string $url Destination URL or route array accepted by `Url::to()`.
+     * @param array<string, mixed>|string $url Destination URL or route array accepted by `Url::to()`.
      *
      * @return Response Inertia location response or standard redirect response.
-     *
-     * @phpstan-param array<string, mixed>|string $url
      */
     public function location(array|string $url): Response
     {
@@ -206,13 +204,11 @@ final class Manager extends Component
      * ```
      *
      * @param string $component Frontend component name.
-     * @param array $props Props forwarded to the frontend component.
-     * @param array $viewData Additional data available in the root view template only; not sent to the frontend.
+     * @param array<string, mixed> $props Props forwarded to the frontend component.
+     * @param array<string, mixed> $viewData Additional data available in the root view template only; not sent to the
+     * frontend.
      *
      * @return Response Inertia response or standard HTML response.
-     *
-     * @phpstan-param array<string, mixed> $props
-     * @phpstan-param array<string, mixed> $viewData
      */
     public function render(string $component, array $props = [], array $viewData = []): Response
     {
@@ -302,10 +298,8 @@ final class Manager extends Component
      * );
      * ```
      *
-     * @param array|string $key Dot-notation key or an array of key-value pairs to share.
+     * @param array<string, mixed>|string $key Dot-notation key or an array of key-value pairs to share.
      * @param mixed $value Value to share; ignored when `$key` is an array.
-     *
-     * @phpstan-param array<string, mixed>|string $key
      */
     public function share(array|string $key, mixed $value = null): void
     {
@@ -325,9 +319,7 @@ final class Manager extends Component
     /**
      * Consumes session flashes and separates error data from general flash messages.
      *
-     * @return array Tuple of `[$errors, $flash]`.
-     *
-     * @phpstan-return array{array<string, mixed>, array<string, mixed>}
+     * @return array{array<string, mixed>, array<string, mixed>} Tuple of `[$errors, $flash]`.
      */
     private function consumeFlashes(): array
     {
@@ -335,7 +327,7 @@ final class Manager extends Component
             return [[], []];
         }
 
-        /** @phpstan-var array<string, mixed> $flashes */
+        /** @var array<string, mixed> $flashes */
         $flashes = Yii::$app->getSession()->getAllFlashes(true);
 
         $errors = [];
@@ -378,9 +370,18 @@ final class Manager extends Component
     /**
      * Collects deferred-prop metadata and returns the callback when the request is a partial reload.
      *
-     * @phpstan-param array{deferredProps: array<string, list<string>>, mergeProps: list<string>, prependProps: list<string>, deepMergeProps: list<string>, matchPropsOn: array<string, string>, scrollProps: array<string, array<string, mixed>>, onceProps: array<string, array<string, mixed>>} $metadata
+     * @param array{
+     *   deferredProps: array<string, list<string>>,
+     *   mergeProps: list<string>,
+     *   prependProps: list<string>,
+     *   deepMergeProps: list<string>,
+     *   matchPropsOn: array<string, string>,
+     *   scrollProps: array<string, array<string, mixed>>,
+     *   onceProps: array<string, array<string, mixed>>,
+     * } $metadata
      *
-     * @phpstan-return (Closure(): mixed)|(Closure(\yii\web\Request): mixed)|null
+     * @return (Closure(): mixed)|(Closure(\yii\web\Request): mixed)|null Callback to resolve the deferred prop value,
+     * or `null` when the prop should be included in the initial payload.
      */
     private function handleDeferredProp(
         DeferredProp $prop,
@@ -397,8 +398,15 @@ final class Manager extends Component
      * Collects merge-prop metadata unless the prop is being reset by the client.
      *
      * @param list<string> $resetProps Prop paths the client wants to reset.
-     *
-     * @phpstan-param array{deferredProps: array<string, list<string>>, mergeProps: list<string>, prependProps: list<string>, deepMergeProps: list<string>, matchPropsOn: array<string, string>, scrollProps: array<string, array<string, mixed>>, onceProps: array<string, array<string, mixed>>} $metadata
+     * @param array{
+     *   deferredProps: array<string, list<string>>,
+     *   mergeProps: list<string>,
+     *   prependProps: list<string>,
+     *   deepMergeProps: list<string>,
+     *   matchPropsOn: array<string, string>,
+     *   scrollProps: array<string, array<string, mixed>>,
+     *   onceProps: array<string, array<string, mixed>>,
+     * } $metadata Metadata arrays collected by reference.
      */
     private function handleMergeProp(MergeProp $prop, string $path, array $resetProps, array &$metadata): void
     {
@@ -434,10 +442,18 @@ final class Manager extends Component
      * Collects once-prop metadata and returns the callback, or `null` when the client already has the prop cached.
      *
      * @param list<string> $exceptOnceProps Once-prop keys the client already has cached.
+     * @param array{
+     *   deferredProps: array<string, list<string>>,
+     *   mergeProps: list<string>,
+     *   prependProps: list<string>,
+     *   deepMergeProps: list<string>,
+     *   matchPropsOn: array<string, string>,
+     *   scrollProps: array<string, array<string, mixed>>,
+     *   onceProps: array<string, array<string, mixed>>,
+     * } $metadata Metadata arrays collected by reference.
      *
-     * @phpstan-param array{deferredProps: array<string, list<string>>, mergeProps: list<string>, prependProps: list<string>, deepMergeProps: list<string>, matchPropsOn: array<string, string>, scrollProps: array<string, array<string, mixed>>, onceProps: array<string, array<string, mixed>>} $metadata
-     *
-     * @phpstan-return (Closure(): mixed)|(Closure(\yii\web\Request): mixed)|null
+     * @return (Closure(): mixed)|(Closure(\yii\web\Request): mixed)|null Callback to resolve the once prop value, or
+     * `null` when the client already has the prop cached.
      */
     private function handleOnceProp(OnceProp $prop, string $path, array $exceptOnceProps, array &$metadata): Closure|null
     {
@@ -467,9 +483,9 @@ final class Manager extends Component
      * Zero-parameter closures wrapping internal PHP functions (e.g. `Closure::fromCallable('time')`) throw
      * `ArgumentCountError` when called with extra arguments, so the parameter count must be checked first.
      *
-     * @param Closure $closure Closure to invoke.
+     * @param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $closure Closure to invoke.
      *
-     * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $closure
+     * @return mixed Result of the closure execution.
      */
     private function invokeClosure(Closure $closure): mixed
     {
@@ -563,9 +579,8 @@ final class Manager extends Component
      *
      * @param string|null $value Raw header value, or `null` when the header is absent.
      *
-     * @return array List of parsed items, or an empty `array` when the input is `null` or contains only whitespace.
-     *
-     * @phpstan-return list<string>
+     * @return list<string> List of parsed items, or an empty `array` when the input is `null` or contains only
+     * whitespace.
      */
     private function parseHeaderList(string|null $value): array
     {
@@ -600,17 +615,12 @@ final class Manager extends Component
      * Returns an array of `[$unwrappedProps, $alwaysPaths]` where closures from wrappers replace the wrapper objects
      * and `$alwaysPaths` lists dot-notation paths that bypass partial reload filtering.
      *
-     * @param array $props Props tree to process.
+     * @param array<int|string, mixed> $props Props tree to process.
      * @param string $prefix Current dot-notation prefix for nested paths.
      * @param bool $isPartialReload Whether this is a partial reload request.
      * @param list<string> $resetProps Prop paths the client wants to reset (skip merge metadata).
      * @param list<string> $exceptOnceProps Once-prop keys the client already has cached.
-     * @param array $metadata Metadata arrays collected by reference.
-     *
-     * @return array Tuple of `[$unwrappedProps, $alwaysPaths]`.
-     *
-     * @phpstan-param array<int|string, mixed> $props
-     * @phpstan-param array{
+     * @param array{
      *   deferredProps: array<string, list<string>>,
      *   mergeProps: list<string>,
      *   prependProps: list<string>,
@@ -618,9 +628,9 @@ final class Manager extends Component
      *   matchPropsOn: array<string, string>,
      *   scrollProps: array<string, array<string, mixed>>,
      *   onceProps: array<string, array<string, mixed>>,
-     * } $metadata
+     * } $metadata Metadata arrays collected by reference.
      *
-     * @phpstan-return array{array<int|string, mixed>, list<string>}
+     * @return array{array<int|string, mixed>, list<string>} Tuple of `[$unwrappedProps, $alwaysPaths]`.
      */
     private function preprocessProps(
         array $props,
@@ -710,9 +720,7 @@ final class Manager extends Component
      * @param list<string> $alwaysPaths Paths that bypass partial reload filtering.
      * @param bool $root Whether this is the root node (always included, never filtered).
      *
-     * @return array Tuple of `[$include, $resolvedValue]`.
-     *
-     * @phpstan-return array{bool, mixed}
+     * @return array{bool, mixed} Tuple of `[$include, $resolvedValue]`.
      */
     private function resolveNode(
         mixed $value,
@@ -760,17 +768,11 @@ final class Manager extends Component
      * Merges shared and page props, preprocesses v3 prop wrappers, and applies partial-reload filtering.
      *
      * @param string $component Frontend component name used to match the partial-reload header.
-     * @param array $props Page-level props passed to `render()`.
-     * @param array $errors Validation errors extracted from session flashes.
-     * @param array $flash Session flash messages extracted from session flashes.
+     * @param array<string, mixed> $props Page-level props passed to `render()`.
+     * @param array<string, mixed> $errors Validation errors extracted from session flashes.
+     * @param array<string, mixed> $flash Session flash messages extracted from session flashes.
      *
-     * @return array Tuple of `[$resolvedProps, $metadata]`.
-     *
-     * @phpstan-param array<string, mixed> $props
-     * @phpstan-param array<string, mixed> $errors
-     * @phpstan-param array<string, mixed> $flash
-     *
-     * @phpstan-return array{
+     * @return array{
      *   array<string, mixed>,
      *   array{
      *     deferredProps: array<string, list<string>>,
@@ -781,7 +783,7 @@ final class Manager extends Component
      *     scrollProps: array<string, array<string, mixed>>,
      *     onceProps: array<string, array<string, mixed>>,
      *   },
-     * }
+     * } Tuple of `[$resolvedProps, $metadata]`.
      */
     private function resolvePropsAndMetadata(string $component, array $props, array $errors, array $flash): array
     {
@@ -870,6 +872,8 @@ final class Manager extends Component
      * Returns `true` if the current request is a partial reload targeting `$component`.
      *
      * @param string $component Frontend component name to match against the `X-Inertia-Partial-Component` header.
+     *
+     * @return bool `true` if the request is a partial reload for the given component; otherwise, `false`.
      */
     private function shouldApplyPartialReload(string $component): bool
     {

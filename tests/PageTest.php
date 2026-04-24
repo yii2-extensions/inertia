@@ -14,7 +14,7 @@ use yii\inertia\tests\providers\PageProvider;
  * {@see PageProvider} for test case data providers.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class PageTest extends TestCase
 {

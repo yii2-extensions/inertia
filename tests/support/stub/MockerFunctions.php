@@ -16,7 +16,7 @@ namespace yii\inertia\tests\support\stub;
  *   delegates to the native function with notices suppressed.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class MockerFunctions
 {

@@ -139,6 +139,37 @@ return Inertia::render(
 );
 ```
 
+## Decoupling the presentation strategy
+
+Controllers that inject `yii\inertia\web\ResponseRendererInterface` delegate the final output to whichever renderer is
+registered in the DI container. `Bootstrap` binds the interface to `InertiaRenderer` by default, so no extra wiring is
+needed for Inertia-only applications. Frontend overlays with a different presentation strategy (JSON, API) can override
+the binding after bootstrap without modifying the action body.
+
+```php
+use yii\inertia\web\ResponseRendererInterface;
+use yii\web\{Controller, Response};
+
+final class UserController extends Controller
+{
+    public function __construct(
+        $id,
+        $module,
+        private readonly ResponseRendererInterface $renderer,
+        $config = [],
+    ) {
+        parent::__construct($id, $module, $config);
+    }
+
+    public function actionShow(int $id): Response|string
+    {
+        $user = User::findOne($id);
+
+        return $this->renderer->render('Users/Show', ['user' => $user->toArray()]);
+    }
+}
+```
+
 ## Next steps
 
 - 📚 [Installation Guide](installation.md)

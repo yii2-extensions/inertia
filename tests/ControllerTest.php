@@ -11,7 +11,7 @@ use yii\web\Response;
  * Unit tests for {@see \yii\inertia\web\Controller}.
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class ControllerTest extends TestCase
 {

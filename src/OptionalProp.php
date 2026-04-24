@@ -25,14 +25,13 @@ use Closure;
  * ```
  *
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
+ * @since 0.1.0
  */
 final class OptionalProp
 {
     /**
-     * @param Closure $callback Closure resolved only during partial reloads that explicitly request this prop.
-     *
-     * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback
+     * @param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback Closure resolved only during partial
+     * reloads that explicitly request this prop.
      */
     public function __construct(private readonly Closure $callback) {}
 
@@ -46,9 +45,7 @@ final class OptionalProp
      * $callback = $optional->getCallback();
      * ```
      *
-     * @return Closure Callback that produces the optional prop value.
-     *
-     * @phpstan-return (Closure(): mixed)|(Closure(\yii\web\Request): mixed)
+     * @return (Closure(): mixed)|(Closure(\yii\web\Request): mixed) Callback that produces the optional prop value.
      */
     public function getCallback(): Closure
     {

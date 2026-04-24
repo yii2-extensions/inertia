@@ -59,6 +59,32 @@ Associative array of shared props. Dot notation is supported for nested props.
 
 Session flash key that will be exposed as `props.errors`. Defaults to `errors`.
 
+## Response renderer binding
+
+`Bootstrap` registers a singleton binding of `yii\inertia\web\ResponseRendererInterface` to `yii\inertia\web\InertiaRenderer`
+in `Yii::$container`. Controllers can type-hint the interface in their constructor and receive the Inertia renderer
+automatically, keeping action methods decoupled from the concrete implementation.
+
+```php
+use yii\inertia\web\ResponseRendererInterface;
+
+final class SiteController extends \yii\web\Controller
+{
+    public function __construct(
+        $id,
+        $module,
+        private readonly ResponseRendererInterface $renderer,
+        $config = [],
+    ) {
+        parent::__construct($id, $module, $config);
+    }
+}
+```
+
+The binding is a singleton; every lookup returns the same instance. Applications can override it by calling
+`Yii::$container->set(ResponseRendererInterface::class, MyRenderer::class)` after bootstrap, for example to substitute a
+test double or to delegate to a custom presentation layer.
+
 ## CSRF protection
 
 The package ships with `yii\inertia\web\Request`, a drop-in replacement for `yii\web\Request` that implements the
