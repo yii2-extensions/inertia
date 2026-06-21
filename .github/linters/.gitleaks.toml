@@ -4,7 +4,11 @@ title = "gitleaks config"
 useDefault = true
 
 [allowlist]
-description = "Allow test fixture data with dummy credentials"
+description = "Allow dummy CSRF and cookie validation examples"
 paths = [
-    '''tests/support/data/.*\.php''',
+    '''README\.md''',
+    '''docs/configuration\.md''',
+    '''docs/examples\.md''',
+    '''src/web/Request\.php''',
+    '''tests/RequestTest\.php''',
 ]
