@@ -11,6 +11,9 @@
 # authored, and ignored by git already.
 tests/runtime/**
 
+# Invalid JSON fixture intentionally cannot be parsed by Prettier.
+tests/data/invalid-manifest.json
+
 # License texts ship verbatim — never auto-formatted.
 **/LICENSE*
 
