@@ -17,7 +17,8 @@
     "require-dev": {
         "infection/infection": "^0.32",
         "maglnet/composer-require-checker": "^4.1",
-        "php-forge/coding-standard": "^0.1",
+        "php-forge/baseline": "^0.1",
+        "php-forge/coding-standard": "^0.3",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0.3",
@@ -38,6 +39,12 @@
     "extra": {
         "branch-alias": {
             "dev-main": "0.2.x-dev"
+        },
+        "scaffold": {
+            "allowed-packages": [
+                "php-forge/baseline",
+                "php-forge/coding-standard"
+            ]
         }
     },
     "config": {
@@ -46,6 +53,7 @@
             "infection/extension-installer": true,
             "php-forge/foxy": true,
             "phpstan/extension-installer": true,
+            "yii2-extensions/scaffold": true,
             "yiisoft/yii2-composer": true
         }
     },
