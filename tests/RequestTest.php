@@ -12,9 +12,6 @@ use yii\inertia\web\Request;
 
 /**
  * Unit tests for {@see Request}.
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class RequestTest extends TestCase
 {

@@ -10,6 +10,14 @@
         "server-driven"
     ],
     "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Wilmer Arambula",
+            "email": "terabytesoftw@gmail.com",
+            "homepage": "https://github.com/terabytesoftw",
+            "role": "Developer"
+        }
+    ],
     "require": {
         "php": ">=8.3",
         "yiisoft/yii2": "^22.0@dev"

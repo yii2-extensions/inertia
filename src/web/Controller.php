@@ -9,9 +9,6 @@ use yii\web\Response;
 
 /**
  * Base controller for Inertia-driven pages.
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 abstract class Controller extends \yii\web\Controller
 {

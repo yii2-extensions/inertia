@@ -16,9 +16,6 @@ use function in_array;
  *
  * Registers the `inertia` application component when it is missing, exposes the `@inertia` alias for the package source
  * directory, and normalizes Yii AJAX redirects so they follow the Inertia protocol.
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class Bootstrap implements BootstrapInterface
 {

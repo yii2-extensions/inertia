@@ -9,9 +9,6 @@ use yii\inertia\Inertia;
 
 /**
  * Unit tests for Inertia v3 protocol features in {@see \yii\inertia\Manager}.
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class ManagerV3Test extends TestCase
 {
