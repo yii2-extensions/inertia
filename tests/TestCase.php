@@ -19,7 +19,7 @@ use yii\web\Response;
  */
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
-    private const PAGE_JSON_PATTERN = '/<script type="application\/json">(.*?)<\/script>/s';
+    private const string PAGE_JSON_PATTERN = '/<script type="application\/json">(.*?)<\/script>/s';
 
     public static function tearDownAfterClass(): void
     {

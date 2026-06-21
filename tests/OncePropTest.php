@@ -18,7 +18,7 @@ final class OncePropTest extends TestCase
 {
     public function testAsSetsCacheKey(): void
     {
-        $once = (new OnceProp(fn() => []))
+        $once = (new OnceProp(fn(): array => []))
             ->as('my-key');
 
         self::assertSame(
@@ -30,7 +30,7 @@ final class OncePropTest extends TestCase
 
     public function testDefaultExpiresAtIsNull(): void
     {
-        $once = new OnceProp(fn() => []);
+        $once = new OnceProp(fn(): array => []);
 
         self::assertNull(
             $once->getExpiresAtMs(),
@@ -40,7 +40,7 @@ final class OncePropTest extends TestCase
 
     public function testDefaultKeyIsNull(): void
     {
-        $once = new OnceProp(fn() => []);
+        $once = new OnceProp(fn(): array => []);
 
         self::assertNull(
             $once->getKey(),
@@ -50,7 +50,7 @@ final class OncePropTest extends TestCase
 
     public function testGetCallbackReturnsClosure(): void
     {
-        $callback = fn() => 'value';
+        $callback = fn(): string => 'value';
 
         $once = new OnceProp($callback);
 
@@ -63,7 +63,7 @@ final class OncePropTest extends TestCase
 
     public function testReturnNewInstanceWhenSettingAttribute(): void
     {
-        $once = new OnceProp(fn() => []);
+        $once = new OnceProp(fn(): array => []);
 
         self::assertNotSame(
             $once,
@@ -91,7 +91,7 @@ final class OncePropTest extends TestCase
     {
         $target = new DateTimeImmutable('2030-06-15T12:00:00+00:00');
 
-        $once = (new OnceProp(fn() => []))
+        $once = (new OnceProp(fn(): array => []))
             ->until($target);
 
         $expected = $target->getTimestamp() * 1000;
@@ -112,7 +112,7 @@ final class OncePropTest extends TestCase
     {
         $before = new DateTimeImmutable();
 
-        $once = (new OnceProp(fn() => []))
+        $once = (new OnceProp(fn(): array => []))
             ->until(new DateInterval('PT1H'));
 
         $after = new DateTimeImmutable();
@@ -143,7 +143,7 @@ final class OncePropTest extends TestCase
     {
         $target = new DateTimeImmutable('2030-01-01T00:00:00+00:00');
 
-        $once = (new OnceProp(fn() => []))
+        $once = (new OnceProp(fn(): array => []))
             ->until($target);
 
         self::assertSame(
@@ -155,7 +155,7 @@ final class OncePropTest extends TestCase
 
     public function testUntilWithIntegerAddsDelayNotSubtracts(): void
     {
-        $once = (new OnceProp(fn() => []))
+        $once = (new OnceProp(fn(): array => []))
             ->until(7200);
 
         $now = time();
@@ -174,7 +174,7 @@ final class OncePropTest extends TestCase
     {
         $before = time();
 
-        $once = (new OnceProp(fn() => []))
+        $once = (new OnceProp(fn(): array => []))
             ->until(3600);
 
         $after = time();

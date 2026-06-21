@@ -123,7 +123,7 @@ final class ManagerV3Test extends TestCase
             'Dashboard',
             [
                 'title' => 'Home',
-                'users' => Inertia::defer(fn() => ['Alice', 'Bob']),
+                'users' => Inertia::defer(fn(): array => ['Alice', 'Bob']),
             ],
         );
 
@@ -150,9 +150,9 @@ final class ManagerV3Test extends TestCase
         $response = Inertia::render(
             'Dashboard',
             [
-                'users' => Inertia::defer(fn() => [], 'sidebar'),
-                'roles' => Inertia::defer(fn() => [], 'sidebar'),
-                'stats' => Inertia::defer(fn() => []),
+                'users' => Inertia::defer(fn(): array => [], 'sidebar'),
+                'roles' => Inertia::defer(fn(): array => [], 'sidebar'),
+                'stats' => Inertia::defer(fn(): array => []),
             ],
         );
 
@@ -182,7 +182,7 @@ final class ManagerV3Test extends TestCase
             'Dashboard',
             [
                 'title' => 'Home',
-                'users' => Inertia::defer(fn() => ['Alice', 'Bob']),
+                'users' => Inertia::defer(fn(): array => ['Alice', 'Bob']),
             ],
         );
 
@@ -472,9 +472,9 @@ final class ManagerV3Test extends TestCase
         $response = Inertia::render(
             'Settings',
             [
-                'countries' => Inertia::once(fn() => ['US', 'UK']),
-                'languages' => Inertia::once(fn() => ['en', 'es']),
-                'timezones' => Inertia::once(fn() => ['UTC', 'EST']),
+                'countries' => Inertia::once(fn(): array => ['US', 'UK']),
+                'languages' => Inertia::once(fn(): array => ['en', 'es']),
+                'timezones' => Inertia::once(fn(): array => ['UTC', 'EST']),
             ],
         );
 
@@ -516,11 +516,11 @@ final class ManagerV3Test extends TestCase
         $response = Inertia::render(
             'Dashboard',
             [
-                'deferred' => Inertia::defer(fn() => 'deferred-val'),
-                'optional' => Inertia::optional(fn() => 'optional-val'),
+                'deferred' => Inertia::defer(fn(): string => 'deferred-val'),
+                'optional' => Inertia::optional(fn(): string => 'optional-val'),
                 'always' => Inertia::always('always-val'),
                 'merge' => Inertia::merge(['a', 'b']),
-                'once' => Inertia::once(fn() => 'once-val'),
+                'once' => Inertia::once(fn(): string => 'once-val'),
                 'regular' => 'plain',
             ],
         );
@@ -592,11 +592,11 @@ final class ManagerV3Test extends TestCase
         $response = Inertia::render(
             'Dashboard',
             [
-                'deferred' => Inertia::defer(fn() => 'deferred-val'),
-                'optional' => Inertia::optional(fn() => 'optional-val'),
+                'deferred' => Inertia::defer(fn(): string => 'deferred-val'),
+                'optional' => Inertia::optional(fn(): string => 'optional-val'),
                 'always' => Inertia::always('always-val'),
                 'merge' => Inertia::merge(['a']),
-                'once' => Inertia::once(fn() => 'once-val'),
+                'once' => Inertia::once(fn(): string => 'once-val'),
                 'regular' => 'plain',
             ],
         );
@@ -679,7 +679,7 @@ final class ManagerV3Test extends TestCase
             'Dashboard',
             [
                 'sidebar' => [
-                    'users' => Inertia::defer(fn() => [], 'panel'),
+                    'users' => Inertia::defer(fn(): array => [], 'panel'),
                 ],
             ],
         );
@@ -738,7 +738,7 @@ final class ManagerV3Test extends TestCase
         $response = Inertia::render(
             'Settings',
             [
-                'countries' => Inertia::once(fn() => ['US']),
+                'countries' => Inertia::once(fn(): array => ['US']),
             ],
         );
 
@@ -772,7 +772,7 @@ final class ManagerV3Test extends TestCase
         $response = Inertia::render(
             'Settings',
             [
-                'countries' => Inertia::once(fn() => ['US', 'UK']),
+                'countries' => Inertia::once(fn(): array => ['US', 'UK']),
             ],
         );
 
@@ -814,7 +814,7 @@ final class ManagerV3Test extends TestCase
         $response = Inertia::render(
             'Settings',
             [
-                'countries' => Inertia::once(fn() => ['US', 'UK']),
+                'countries' => Inertia::once(fn(): array => ['US', 'UK']),
             ],
         );
 
@@ -836,7 +836,7 @@ final class ManagerV3Test extends TestCase
         $response = Inertia::render(
             'Settings',
             [
-                'countries' => Inertia::once(fn() => ['US'])
+                'countries' => Inertia::once(fn(): array => ['US'])
                     ->as('countries-v1')
                     ->until(3600),
             ],
@@ -871,7 +871,7 @@ final class ManagerV3Test extends TestCase
 
         $response = Inertia::render('Users/Show', [
             'user' => ['name' => 'Alice'],
-            'activity' => Inertia::optional(fn() => ['logged in']),
+            'activity' => Inertia::optional(fn(): array => ['logged in']),
         ]);
 
         $page = $this->extractPage($response);
@@ -902,7 +902,7 @@ final class ManagerV3Test extends TestCase
             'Users/Show',
             [
                 'user' => ['name' => 'Alice'],
-                'activity' => Inertia::optional(fn() => ['logged in']),
+                'activity' => Inertia::optional(fn(): array => ['logged in']),
             ],
         );
 

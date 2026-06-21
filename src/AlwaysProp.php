@@ -27,12 +27,12 @@ use Closure;
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
  * @since 0.1
  */
-final class AlwaysProp
+final readonly class AlwaysProp
 {
     /**
      * @param Closure|mixed $value Value or closure always included in responses.
      */
-    public function __construct(private readonly mixed $value) {}
+    public function __construct(private mixed $value) {}
 
     /**
      * Returns the wrapped value to be included in the response.

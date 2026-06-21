@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace yii\inertia\tests;
 
+use stdClass;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\inertia\tests\support\stub\MockerFunctions;
@@ -219,7 +220,7 @@ final class RequestTest extends TestCase
         self::assertInstanceOf(Request::class, $request);
 
         $signed = Yii::$app->getSecurity()->hashData(
-            serialize(['XSRF-TOKEN', new \stdClass()]),
+            serialize(['XSRF-TOKEN', new stdClass()]),
             $request->cookieValidationKey,
         );
 

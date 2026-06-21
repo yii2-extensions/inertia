@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace yii\inertia;
 
 use Yii;
+use yii\base\Application;
 use yii\base\{BootstrapInterface, Event};
 use yii\web\Response;
 
@@ -22,7 +23,7 @@ use function in_array;
 final class Bootstrap implements BootstrapInterface
 {
     /**
-     * @param \yii\base\Application $app
+     * @param Application $app
      */
     public function bootstrap($app): void
     {

@@ -27,14 +27,14 @@ use Closure;
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
  * @since 0.1
  */
-final class OptionalProp
+final readonly class OptionalProp
 {
     /**
      * @param Closure $callback Closure resolved only during partial reloads that explicitly request this prop.
      *
      * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback
      */
-    public function __construct(private readonly Closure $callback) {}
+    public function __construct(private Closure $callback) {}
 
     /**
      * Returns the callback resolved only during partial reloads that explicitly request this prop.
