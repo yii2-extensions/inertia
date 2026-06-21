@@ -41,9 +41,6 @@ use function sprintf;
  *     ],
  * ];
  * ```
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class Vite extends Component
 {

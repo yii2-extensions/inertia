@@ -12,9 +12,6 @@ use yii\inertia\tests\providers\PageProvider;
  * Unit tests for {@see Page}.
  *
  * {@see PageProvider} for test case data providers.
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class PageTest extends TestCase
 {

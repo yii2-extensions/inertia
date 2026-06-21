@@ -11,9 +11,6 @@ use yii\web\Response;
 
 /**
  * Provides a static helper over the Inertia application component.
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class Inertia
 {

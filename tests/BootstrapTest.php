@@ -16,9 +16,6 @@ use yii\web\Response;
  * Unit tests for {@see \yii\inertia\Bootstrap}.
  *
  * {@see BootstrapProvider} for test case data providers.
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class BootstrapTest extends TestCase
 {

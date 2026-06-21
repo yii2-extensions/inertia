@@ -14,9 +14,6 @@ namespace yii\inertia\tests\support\stub;
  * - `trim`: records whether it has been invoked at least once and delegates to the native function.
  * - `unserialize`: records every invocation with its `$data` and `$options` for exact-argument verification, then
  *   delegates to the native function with notices suppressed.
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class MockerFunctions
 {

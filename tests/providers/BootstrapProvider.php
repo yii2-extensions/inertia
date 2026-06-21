@@ -8,9 +8,6 @@ namespace yii\inertia\tests\providers;
  * Data provider for {@see \yii\inertia\tests\BootstrapTest} test cases.
  *
  * Provides representative input/output pairs for Inertia redirect normalization.
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class BootstrapProvider
 {

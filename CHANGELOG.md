@@ -10,6 +10,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - chore: integrate scaffold-managed development metadata and apply its PHP 8.3 coding-standard cleanups.
 - ci: migrate GitHub workflows to pinned reusable quality and security checks.
+- chore: centralize author metadata in `composer.json` and remove `@author` and `@since` PHPDoc tags from all `src/` and `tests/` files.
 
 ## 0.1.0 April 16, 2026
 

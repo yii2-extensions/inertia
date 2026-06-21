@@ -18,9 +18,6 @@ use JsonSerializable;
  *     ->withFlash(['success' => 'Saved.'])
  *     ->withDeferredProps(['default' => ['users']]);
  * ```
- *
- * @author Wilmer Arambula <terabytesoftw@gmail.com>
- * @since 0.1
  */
 final class Page implements JsonSerializable
 {
