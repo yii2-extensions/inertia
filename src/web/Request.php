@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace yii\inertia\web;
 
+use Override;
 use Yii;
 
 use function is_array;
@@ -64,6 +65,7 @@ class Request extends \yii\web\Request
      *
      * @return string|null Masked CSRF token, or `null` when the header is absent or invalid.
      */
+    #[Override]
     public function getCsrfTokenFromHeader(): string|null
     {
         $token = $this->headers->get($this->csrfHeader);

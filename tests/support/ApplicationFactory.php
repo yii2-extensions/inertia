@@ -17,7 +17,7 @@ use yii\web\Application;
  */
 final class ApplicationFactory
 {
-    private const COOKIE_VALIDATION_KEY = 'test-cookie-validation-key';
+    private const string COOKIE_VALIDATION_KEY = 'test-cookie-validation-key';
 
     /**
      * Destroys the current application.

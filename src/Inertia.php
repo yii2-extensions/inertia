@@ -17,7 +17,7 @@ use yii\web\Response;
  */
 final class Inertia
 {
-    private const COMPONENT_ID = 'inertia';
+    private const string COMPONENT_ID = 'inertia';
 
     /**
      * Creates a prop that is always included in every response, bypassing partial-reload filtering.

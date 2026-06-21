@@ -8,7 +8,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Changed
 
-- chore: integrate scaffold-managed development metadata and configuration.
+- chore: integrate scaffold-managed development metadata and apply its PHP 8.3 coding-standard cleanups.
 
 ## 0.1.0 April 16, 2026
 

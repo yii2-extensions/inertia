@@ -26,7 +26,7 @@ use Closure;
  * @author Wilmer Arambula <terabytesoftw@gmail.com>
  * @since 0.1
  */
-final class DeferredProp
+final readonly class DeferredProp
 {
     /**
      * @param Closure $callback Closure resolved when the client requests this prop.
@@ -34,7 +34,7 @@ final class DeferredProp
      *
      * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback
      */
-    public function __construct(private readonly Closure $callback, private readonly string $group = 'default') {}
+    public function __construct(private Closure $callback, private string $group = 'default') {}
 
     /**
      * Returns the deferred callback to be evaluated when the client requests this prop.
