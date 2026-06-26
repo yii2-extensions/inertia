@@ -2,7 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
+The format is based on [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 0.1.1 Under development
 
@@ -12,6 +13,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - ci: migrate GitHub workflows to pinned reusable quality and security checks.
 - chore: centralize author metadata in `composer.json` and remove `@author` and `@since` PHPDoc tags from all `src/` and `tests/` files.
 - chore: add configuration for Coderabbit and update Dependabot settings.
+- docs: update `CHANGELOG.md` format to reference conventional commits.
 
 ## 0.1.0 April 16, 2026
 
