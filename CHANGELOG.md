@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: centralize author metadata in `composer.json` and remove `@author` and `@since` PHPDoc tags from all `src/` and `tests/` files.
 - chore: add configuration for Coderabbit and update Dependabot settings.
 - docs: update `CHANGELOG.md` format to reference conventional commits.
+- chore: add social media links to `README.md`.
 
 ## 0.1.0 April 16, 2026
 
