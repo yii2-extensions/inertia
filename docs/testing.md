@@ -72,3 +72,4 @@ composer static -- --memory-limit=512M
 - 📚 [Installation Guide](installation.md)
 - ⚙️ [Configuration Reference](configuration.md)
 - 💡 [Usage Examples](examples.md)
+- 📖 [Readme](../README.md)

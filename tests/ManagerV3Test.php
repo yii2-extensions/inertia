@@ -491,7 +491,7 @@ final class ManagerV3Test extends TestCase
         );
         self::assertSame(
             ['en', 'es'],
-            $props['languages'] ?? null,
+            $props['languages'],
             'Key "languages" should have the correct value.',
         );
         self::assertArrayHasKey(
@@ -501,7 +501,7 @@ final class ManagerV3Test extends TestCase
         );
         self::assertSame(
             ['UTC', 'EST'],
-            $props['timezones'] ?? null,
+            $props['timezones'],
             'Key "timezones" should have the correct value.',
         );
     }
