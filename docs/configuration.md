@@ -87,6 +87,7 @@ A custom root view should type its page with the neutral core class:
 <?php
 
 use PHPForge\Inertia\Page;
+use yii\helpers\Html;
 
 /**
  * @var string $id
@@ -94,7 +95,7 @@ use PHPForge\Inertia\Page;
  * @var string $pageJson
  */
 ?>
-<div id="<?= $id ?>" data-page="<?= htmlspecialchars($pageJson, ENT_QUOTES, 'UTF-8') ?>"></div>
+<div id="<?= Html::encode($id) ?>" data-page="<?= htmlspecialchars($pageJson, ENT_QUOTES, 'UTF-8') ?>"></div>
 ```
 
 Use the supplied `pageJson` value instead of serializing the page again.

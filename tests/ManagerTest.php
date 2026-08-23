@@ -47,6 +47,32 @@ final class ManagerTest extends TestCase
         }
     }
 
+    public function testAdapterRejectsNonStringFlashKeysWithoutConsumingThem(): void
+    {
+        $session = Yii::$app->getSession();
+
+        $session->setFlash('42', 'Invalid flash key.');
+
+        try {
+            Inertia::render('Dashboard');
+
+            self::fail(
+                'A non-string flash key should be rejected.',
+            );
+        } catch (InvalidConfigException $exception) {
+            self::assertSame(
+                'Inertia session flash keys must be strings.',
+                $exception->getMessage(),
+                'The exception should identify the unsupported flash key.',
+            );
+            self::assertSame(
+                [42 => 'Invalid flash key.'],
+                $session->getAllFlashes(false),
+                'A rejected flash should remain available for the next request.',
+            );
+        }
+    }
+
     public function testFailedRenderDoesNotConsumeFlashes(): void
     {
         Yii::$app->getSession()->setFlash('errors', ['' => 'Invalid']);
@@ -78,6 +104,19 @@ final class ManagerTest extends TestCase
             [],
             $manager->getShared(),
             'Flushing should remove every shared prop.',
+        );
+    }
+
+    public function testGetVersionResolvesClosureWithoutArguments(): void
+    {
+        $manager = $this->manager();
+
+        $manager->version = static fn(): string => 'asset-version';
+
+        self::assertSame(
+            'asset-version',
+            $manager->getVersion(),
+            'The Yii adapter should invoke zero-argument version callbacks without a request.',
         );
     }
 
@@ -243,6 +282,31 @@ final class ManagerTest extends TestCase
             ['settings' => ['prop' => 'settings', 'expiresAt' => 1_720_000_060_000]],
             $response->data->onceProps,
             'The configured protocol clock should resolve once-prop expiration metadata.',
+        );
+    }
+
+    public function testNormalizeResponseLeavesStandardResponseUntouched(): void
+    {
+        $response = new Response();
+
+        $response->setStatusCode(302);
+        $response->getHeaders()->set('Location', '/login');
+
+        $this->manager()->normalizeResponse($response);
+
+        self::assertSame(
+            302,
+            $response->statusCode,
+            'A standard redirect should preserve its status code.',
+        );
+        self::assertSame(
+            '/login',
+            $response->getHeaders()->get('Location'),
+            'A standard redirect should preserve its location header.',
+        );
+        self::assertNull(
+            $response->getHeaders()->get('Vary'),
+            'A standard response should not gain the Inertia Vary token.',
         );
     }
 

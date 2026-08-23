@@ -508,7 +508,7 @@ final class Manager extends Component
      * Returns a nested value tree with a value assigned at the supplied path.
      *
      * @param array<array-key, mixed> $values Existing value tree.
-     * @param list<string> $path Nested path segments.
+     * @param non-empty-list<string> $path Nested path segments.
      * @param mixed $value Value to assign.
      *
      * @return array<array-key, mixed> Updated value tree.
@@ -516,10 +516,6 @@ final class Manager extends Component
     private function withNestedValue(array $values, array $path, mixed $value): array
     {
         $key = array_shift($path);
-
-        if ($key === null) {
-            return $values;
-        }
 
         if ($path === []) {
             $values[$key] = $value;
@@ -537,7 +533,7 @@ final class Manager extends Component
      * Returns shared props with a value assigned at the supplied path.
      *
      * @param array<string, mixed> $values Existing shared props.
-     * @param list<string> $path Nested path segments.
+     * @param non-empty-list<string> $path Nested path segments.
      * @param mixed $value Value to assign.
      *
      * @return array<string, mixed> Updated shared props.
@@ -545,10 +541,6 @@ final class Manager extends Component
     private function withSharedValue(array $values, array $path, mixed $value): array
     {
         $key = array_shift($path);
-
-        if ($key === null) {
-            return $values;
-        }
 
         if ($path === []) {
             $values[$key] = $value;
