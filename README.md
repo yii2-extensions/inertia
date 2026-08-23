@@ -26,7 +26,6 @@
 </p>
 
 <p align="center">
-    <strong>Yii2 adapter for the framework-agnostic <a href="https://github.com/php-forge/inertia">PHPForge Inertia core</a></strong><br>
     <em>Connect Yii requests, responses, views, sessions, and redirects to the Inertia protocol</em>
 </p>
 
