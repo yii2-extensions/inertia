@@ -1,13 +1,18 @@
 {
     "name": "yii2-extensions/inertia",
     "type": "library",
-    "description": "Inertia js server-side integration layer for yii2.",
+    "description": "Yii2 adapter for the framework-agnostic Inertia.js PHP protocol core.",
+    "homepage": "https://github.com/yii2-extensions/inertia",
+    "support": {
+        "issues": "https://github.com/yii2-extensions/inertia/issues",
+        "source": "https://github.com/yii2-extensions/inertia"
+    },
     "keywords": [
-        "yii2",
         "inertia",
         "php",
+        "server-driven",
         "spa",
-        "server-driven"
+        "yii2"
     ],
     "license": "BSD-3-Clause",
     "authors": [
@@ -20,6 +25,7 @@
     ],
     "require": {
         "php": ">=8.3",
+        "php-forge/inertia": "^0.1@dev",
         "yiisoft/yii2": "^22.0@dev"
     },
     "require-dev": {
@@ -59,7 +65,6 @@
         "sort-packages": true,
         "allow-plugins": {
             "infection/extension-installer": true,
-            "php-forge/foxy": true,
             "phpstan/extension-installer": true,
             "yiisoft/yii2-composer": true
         }

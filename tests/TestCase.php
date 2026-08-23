@@ -4,15 +4,25 @@ declare(strict_types=1);
 
 namespace yii\inertia\tests;
 
+use PHPForge\Inertia\Page;
 use Yii;
 use yii\helpers\Json;
-use yii\inertia\Page;
 use yii\inertia\tests\support\ApplicationFactory;
 use yii\inertia\tests\support\stub\MockerFunctions;
 use yii\web\Response;
 
+use function preg_match;
+
 /**
  * Base test case for inertia tests.
+ *
+ * @phpstan-type PagePayload array{
+ *   component: string,
+ *   props: array<string, mixed>,
+ *   url: string,
+ *   version: int|string,
+ *   ...
+ * }
  */
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
@@ -34,31 +44,14 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Extracts the page object from an HTML or JSON response.
+     * Extracts a core page payload from an HTML or JSON response.
      *
-     * @return array Page payload containing 'component', 'props', 'url', 'version', and optional v3 metadata keys.
-     *
-     * @phpstan-return array{
-     *   component: string,
-     *   props: array<string, mixed>,
-     *   url: string,
-     *   version: int|string,
-     *   flash?: array<string, mixed>,
-     *   clearHistory?: bool,
-     *   encryptHistory?: bool,
-     *   deferredProps?: array<string, list<string>>,
-     *   mergeProps?: list<string>,
-     *   prependProps?: list<string>,
-     *   deepMergeProps?: list<string>,
-     *   matchPropsOn?: array<string, string>,
-     *   scrollProps?: array<string, array<string, mixed>>,
-     *   onceProps?: array<string, array<string, mixed>>,
-     * }
+     * @phpstan-return PagePayload
      */
     protected function extractPage(Response $response): array
     {
         if ($response->data instanceof Page) {
-            return $response->data->jsonSerialize();
+            return $this->validatePagePayload($response->data->toArray());
         }
 
         $content = (string) $response->content;
@@ -74,35 +67,17 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         self::assertSame(
             1,
             $result,
-            'Regex should match exactly one JSON script block.',
+            'The root view should contain one page JSON script.',
         );
 
         $decoded = Json::decode($matches[1]);
 
         self::assertIsArray(
             $decoded,
-            'Decoded JSON page payload should be an array.',
+            'The embedded page JSON should decode to an array.',
         );
 
-        /**
-         * @phpstan-var array{
-         *   component: string,
-         *   props: array<string, mixed>,
-         *   url: string,
-         *   version: int|string,
-         *   flash?: array<string, mixed>,
-         *   clearHistory?: bool,
-         *   encryptHistory?: bool,
-         *   deferredProps?: array<string, list<string>>,
-         *   mergeProps?: list<string>,
-         *   prependProps?: list<string>,
-         *   deepMergeProps?: list<string>,
-         *   matchPropsOn?: array<string, string>,
-         *   scrollProps?: array<string, array<string, mixed>>,
-         *   onceProps?: array<string, array<string, mixed>>,
-         * } $decoded
-         */
-        return $decoded;
+        return $this->validatePagePayload($decoded);
     }
 
     /**
@@ -167,5 +142,67 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         parent::tearDown();
 
         $this->destroyApplication();
+    }
+
+    /**
+     * @param array<array-key, mixed> $page
+     *
+     * @phpstan-assert PagePayload $page
+     */
+    private function assertPagePayload(array $page): void
+    {
+        self::assertArrayHasKey(
+            'component',
+            $page,
+            'A page should contain its component.',
+        );
+        self::assertIsString(
+            $page['component'],
+            'The page component should be a string.',
+        );
+        self::assertArrayHasKey(
+            'props',
+            $page,
+            'A page should contain props.',
+        );
+        self::assertIsArray(
+            $page['props'],
+            'Page props should be an array.',
+        );
+
+        foreach ($page['props'] as $key => $_) {
+            self::assertIsString($key, 'Page prop keys should be strings.');
+        }
+
+        self::assertArrayHasKey(
+            'url',
+            $page,
+            'A page should contain its relative URL.',
+        );
+        self::assertIsString(
+            $page['url'],
+            'The page URL should be a string.',
+        );
+        self::assertArrayHasKey(
+            'version',
+            $page,
+            'A page should contain its asset version.',
+        );
+        self::assertTrue(
+            is_int($page['version']) || is_string($page['version']),
+            'The page version should be an integer or string.',
+        );
+    }
+
+    /**
+     * @param array<array-key, mixed> $page
+     *
+     * @phpstan-return PagePayload
+     */
+    private function validatePagePayload(array $page): array
+    {
+        $this->assertPagePayload($page);
+
+        return $page;
     }
 }

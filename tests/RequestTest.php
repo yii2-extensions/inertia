@@ -229,6 +229,38 @@ final class RequestTest extends TestCase
         );
     }
 
+    public function testGetCsrfTokenFromHeaderRejectsUnexpectedArrayShapes(): void
+    {
+        $this->mockWebApplicationWithInertiaRequest();
+
+        $request = Yii::$app->getRequest();
+
+        self::assertInstanceOf(
+            Request::class,
+            $request,
+            'Request component should be an instance of yii\inertia\web\Request.',
+        );
+
+        $payloads = [
+            'missing token' => ['XSRF-TOKEN'],
+            'extra value' => ['XSRF-TOKEN', 'token', 'unexpected'],
+            'non-list' => [1 => 'XSRF-TOKEN', 2 => 'token'],
+        ];
+
+        foreach ($payloads as $case => $payload) {
+            $signed = Yii::$app->getSecurity()->hashData(
+                serialize($payload),
+                $request->cookieValidationKey,
+            );
+            $request->headers->set('X-XSRF-TOKEN', $signed);
+
+            self::assertNull(
+                $request->getCsrfTokenFromHeader(),
+                "The {$case} payload should be rejected.",
+            );
+        }
+    }
+
     public function testGetCsrfTokenFromHeaderReturnsNullForInvalidHmac(): void
     {
         $this->mockWebApplicationWithInertiaRequest();

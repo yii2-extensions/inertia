@@ -2,12 +2,10 @@
 
 ## Overview
 
-`yii2-extensions/inertia` provides a server-side Inertia response manager registered as the `inertia` application
-component. The bootstrap class registers it automatically when missing.
+`yii2-extensions/inertia` registers a Yii2 application component that translates Yii request and application state
+into `php-forge/inertia` inputs, then maps protocol results to Yii responses.
 
 ## Basic configuration
-
-Enable the package through the application bootstrap and configure the component:
 
 ```php
 // config/web.php
@@ -36,36 +34,77 @@ return [
 ];
 ```
 
-## Properties
+## Manager properties
 
 ### `id`
 
-DOM ID used by the default root view. Defaults to `app`.
+DOM ID used by the default root view. The default is `app`.
 
 ### `rootView`
 
-View file used for the first full HTML response. Defaults to `@inertia/views/app.php`.
+View file rendered for the initial full HTML visit. The default is `@inertia/views/app.php`.
+
+The view receives:
+
+- `id`: the configured root element ID;
+- `page`: a `PHPForge\Inertia\Page` instance;
+- `pageJson`: HTML-safe serialized page data;
+- values passed through the third argument of `Inertia::render()`.
 
 ### `version`
 
-Current asset version. It can be a string, integer, or closure. Inertia requests compare it against the
-`X-Inertia-Version` request header.
+Asset version compared with `X-Inertia-Version`. It accepts a string, integer, zero-argument closure, or closure that
+accepts the current `yii\web\Request`.
 
 ### `shared`
 
-Associative array of shared props. Dot notation is supported for nested props.
+Props included in every rendered page. Dot notation creates nested values. Page-specific props take precedence after
+the core resolves shared props.
 
 ### `errorFlashKey`
 
-Session flash key that will be exposed as `props.errors`. Defaults to `errors`.
+Session flash key mapped to `props.errors`. The default is `errors`. Its value must be an array whose string keys map
+to a string or a list of strings.
+
+### `encryptHistory`, `clearHistory`, and `preserveFragment`
+
+Boolean page options passed directly to the protocol core. Each option defaults to `false`.
+
+### `exposeSharedProps`
+
+Controls whether the core includes shared-prop metadata in the page. The default is `true`.
+
+### `protocol`
+
+Optional `PHPForge\Inertia\Protocol` instance. Applications normally use the default instance; injection is useful
+when a custom core clock is required for deterministic tests.
+
+## Root view
+
+A custom root view should type its page with the neutral core class:
+
+```php
+<?php
+
+use PHPForge\Inertia\Page;
+use yii\helpers\Html;
+
+/**
+ * @var string $id
+ * @var Page $page
+ * @var string $pageJson
+ */
+?>
+<div id="<?= Html::encode($id) ?>" data-page="<?= htmlspecialchars($pageJson, ENT_QUOTES, 'UTF-8') ?>"></div>
+```
+
+Use the supplied `pageJson` value instead of serializing the page again.
 
 ## CSRF protection
 
-The package ships with `yii\inertia\web\Request`, a drop-in replacement for `yii\web\Request` that implements the
-cookie-to-header CSRF pattern used by Inertia's built-in HTTP client.
+`yii\inertia\web\Request` implements the cookie-to-header flow used by the Inertia client:
 
 ```php
-// config/web.php
 return [
     'components' => [
         'request' => [
@@ -76,12 +115,17 @@ return [
 ];
 ```
 
-The component sets a non-`httpOnly` `XSRF-TOKEN` cookie. Inertia reads it on the client and sends back the value via
-the `X-XSRF-TOKEN` header. The `getCsrfTokenFromHeader()` override unsigns the HMAC-validated payload and returns a
-masked token compatible with Yii's `validateCsrfToken()` flow.
+The component publishes a non-HTTP-only `XSRF-TOKEN` cookie. The client returns it in `X-XSRF-TOKEN`, and the request
+component validates and unmasks it for Yii's CSRF validation.
+
+## Redirect normalization
+
+For Inertia requests, the bootstrap class routes redirect responses through the protocol core. This includes method
+redirect normalization and fragment-only redirect handling. Existing `Vary` values are preserved and merged with
+`X-Inertia`.
 
 ## Next steps
 
-- 📚 [Installation Guide](installation.md)
-- 💡 [Usage Examples](examples.md)
-- 🧪 [Testing Guide](testing.md)
+- 📚 [Installation guide](installation.md)
+- 💡 [Usage examples](examples.md)
+- 🧪 [Testing guide](testing.md)

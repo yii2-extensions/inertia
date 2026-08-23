@@ -7,36 +7,20 @@ namespace yii\inertia\web;
 use Override;
 use Yii;
 
+use function array_is_list;
+use function count;
 use function is_array;
+use function is_string;
 
 /**
  * Configures CSRF protection for Inertia applications using the cookie-to-header pattern.
- *
- * Sets a non-httpOnly `XSRF-TOKEN` cookie that Inertia's built-in HTTP client reads automatically and sends back as the
- * `X-XSRF-TOKEN` header on every request. When cookie validation is enabled, the header value is HMAC-signed; this
- * class transparently unsigns and extracts the masked token before Yii's CSRF comparison runs.
- *
- * Usage example:
- *
- * ```php
- * // config/web.php
- * return [
- *     'components' => [
- *         'request' => [
- *             'class' => \yii\inertia\web\Request::class,
- *             'cookieValidationKey' => 'your-secret-key',
- *             'parsers' => ['application/json' => \yii\web\JsonParser::class],
- *         ],
- *     ],
- * ];
- * ```
  */
 class Request extends \yii\web\Request
 {
     /**
      * Cookie options. `httpOnly` is `false` so JavaScript can read the CSRF token.
      *
-     * @phpstan-var mixed[]
+     * @var mixed[]
      */
     public $csrfCookie = ['httpOnly' => false];
     /**
@@ -51,15 +35,6 @@ class Request extends \yii\web\Request
     /**
      * Returns the CSRF token sent via the `X-XSRF-TOKEN` header.
      *
-     * When cookie validation is enabled, the raw header value is HMAC-signed. This method validates the signature,
-     * deserializes the payload, and extracts the masked token expected by Yii's CSRF comparison.
-     *
-     * Usage example:
-     *
-     * ```php
-     * $token = Yii::$app->request->getCsrfTokenFromHeader();
-     * ```
-     *
      * @return string|null Masked CSRF token, or `null` when the header is absent or invalid.
      */
     #[Override]
@@ -67,15 +42,11 @@ class Request extends \yii\web\Request
     {
         $token = $this->headers->get($this->csrfHeader);
 
-        if ($token === null) {
-            return null;
-        }
-
         if (!$this->enableCookieValidation) {
             return $token;
         }
 
-        $data = Yii::$app->getSecurity()->validateData($token, $this->cookieValidationKey);
+        $data = Yii::$app->getSecurity()->validateData($token ?? '', $this->cookieValidationKey);
 
         if ($data === false) {
             return null;
@@ -83,10 +54,16 @@ class Request extends \yii\web\Request
 
         $data = @unserialize($data, ['allowed_classes' => false]);
 
-        if (is_array($data) && isset($data[0], $data[1]) && $data[0] === $this->csrfParam && is_string($data[1])) {
-            return Yii::$app->getSecurity()->maskToken($data[1]);
+        if (!is_array($data) || !array_is_list($data) || count($data) !== 2) {
+            return null;
         }
 
-        return null;
+        [$parameter, $value] = $data;
+
+        if ($parameter !== $this->csrfParam || !is_string($value)) {
+            return null;
+        }
+
+        return Yii::$app->getSecurity()->maskToken($value);
     }
 }

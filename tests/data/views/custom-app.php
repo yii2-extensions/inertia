@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use PHPForge\Inertia\Page;
 use yii\helpers\Html;
-use yii\inertia\Page;
 
 /**
  * @var string $id

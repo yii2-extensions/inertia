@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace yii\inertia\tests;
 
+use PHPForge\Inertia\Prop\ScrollMetadata;
 use stdClass;
 use Yii;
 use yii\base\InvalidConfigException;
@@ -171,6 +172,54 @@ final class InertiaTest extends TestCase
         );
 
         Inertia::getVersion();
+    }
+
+    public function testPropFactoriesDelegateToFrameworkAgnosticCore(): void
+    {
+        self::assertSame(
+            'value',
+            Inertia::always('value')->value(),
+            'Should retain its core value.',
+        );
+
+        $deferred = Inertia::defer(static fn(): array => [], 'reports', true);
+
+        self::assertSame(
+            'reports',
+            $deferred->group(),
+            'Should retain the core group.',
+        );
+        self::assertTrue(
+            $deferred->rescuesFailures(),
+            'Should retain the core rescue option.',
+        );
+        self::assertFalse(
+            Inertia::defer(static fn(): array => [])->rescuesFailures(),
+            'defer() should not rescue failures unless explicitly enabled.',
+        );
+        self::assertTrue(
+            Inertia::merge([])->appendsAtRoot(),
+            'Should use core append-at-root behavior.',
+        );
+        self::assertTrue(
+            Inertia::deepMerge([])->isDeep(),
+            'Should enable core deep-merge metadata.',
+        );
+        self::assertSame(
+            'cache-key',
+            Inertia::once(static fn(): array => [])->as('cache-key')->key(),
+            'Should expose core cache metadata.',
+        );
+        self::assertSame(
+            [],
+            Inertia::optional(static fn(): array => [])->value()(),
+            'Should retain its core callback.',
+        );
+        self::assertSame(
+            'records',
+            Inertia::scroll([], new ScrollMetadata('page', null, null, 1), 'records')->wrapper(),
+            'Should retain the core wrapper.',
+        );
     }
 
     public function testRenderReturnsHtmlForStandardRequests(): void
