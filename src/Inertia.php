@@ -5,12 +5,22 @@ declare(strict_types=1);
 namespace yii\inertia;
 
 use Closure;
+use PHPForge\Inertia\Prop\{
+    AlwaysProp,
+    DeferredProp,
+    MergeProp,
+    OnceProp,
+    OptionalProp,
+    Prop,
+    ScrollMetadata,
+    ScrollProp,
+};
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\web\Response;
 
 /**
- * Provides a static helper over the Inertia application component.
+ * Provides Yii-oriented page operations and framework-neutral prop factories through the configured manager.
  */
 final class Inertia
 {
@@ -19,39 +29,17 @@ final class Inertia
     /**
      * Creates a prop that is always included in every response, bypassing partial-reload filtering.
      *
-     * Usage example:
-     *
-     * ```php
-     * \yii\inertia\Inertia::render(
-     *     'Dashboard',
-     *     [
-     *         'auth' => \yii\inertia\Inertia::always(fn () => ['user' => Yii::$app->user->identity]),
-     *     ],
-     * );
-     * ```
-     *
      * @param Closure|mixed $value Value or closure always included in responses.
      *
      * @return AlwaysProp Prop instance that is always included in responses.
      */
     public static function always(mixed $value): AlwaysProp
     {
-        return new AlwaysProp($value);
+        return Prop::always($value);
     }
 
     /**
      * Creates a prop that deep-merges with existing client-side data during partial reloads.
-     *
-     * Usage example:
-     *
-     * ```php
-     * \yii\inertia\Inertia::render(
-     *     'Settings',
-     *     [
-     *         'config' => \yii\inertia\Inertia::deepMerge($nestedConfig),
-     *     ]
-     * );
-     * ```
      *
      * @param Closure|mixed $value Value or closure to deep-merge.
      *
@@ -59,44 +47,28 @@ final class Inertia
      */
     public static function deepMerge(mixed $value): MergeProp
     {
-        return (new MergeProp($value))->deepMerge();
+        return Prop::merge($value)->deepMerge();
     }
 
     /**
      * Creates a deferred prop whose evaluation is postponed until the client requests it via a partial reload.
      *
-     * Usage example:
-     *
-     * ```php
-     * \yii\inertia\Inertia::render(
-     *     'Dashboard',
-     *     [
-     *         'users' => \yii\inertia\Inertia::defer(fn () => User::find()->all()),
-     *         'roles' => \yii\inertia\Inertia::defer(fn () => Role::find()->all(), 'attributes'),
-     *     ]
-     * );
-     * ```
-     *
-     * @param Closure $callback Closure resolved when the client requests this prop.
+     * @param (Closure(): mixed) $callback Closure resolved when the client requests this prop.
      * @param string $group Group name for batching deferred requests.
+     * @param bool $rescue Whether callback failures should be rescued and reported as page metadata.
      *
      * @return DeferredProp Prop instance that is resolved when the client requests it via a partial reload.
-     *
-     * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback
      */
-    public static function defer(Closure $callback, string $group = 'default'): DeferredProp
-    {
-        return new DeferredProp($callback, $group);
+    public static function defer(
+        Closure $callback,
+        string $group = 'default',
+        bool $rescue = false,
+    ): DeferredProp {
+        return Prop::defer($callback, $group, $rescue);
     }
 
     /**
      * Removes all shared props registered for the current request.
-     *
-     * Usage example:
-     *
-     * ```php
-     * \yii\inertia\Inertia::flushShared();
-     * ```
      */
     public static function flushShared(): void
     {
@@ -105,16 +77,6 @@ final class Inertia
 
     /**
      * Returns the shared props or the nested value at `$key`.
-     *
-     * Usage example:
-     *
-     * ```php
-     * // return all shared props.
-     * $all = \yii\inertia\Inertia::getShared();
-     *
-     * // return a nested value using dot notation.
-     * $name = \yii\inertia\Inertia::getShared('auth.user.name', 'Guest');
-     * ```
      *
      * @param string|null $key Dot-notation key to retrieve, or `null` to return all shared props.
      * @param mixed $default Value returned when `$key` is not found.
@@ -129,12 +91,6 @@ final class Inertia
     /**
      * Returns the resolved asset version.
      *
-     * Usage example:
-     *
-     * ```php
-     * $version = \yii\inertia\Inertia::getVersion();
-     * ```
-     *
      * @return int|string Resolved version, or an empty `string` when none is configured.
      */
     public static function getVersion(): int|string
@@ -145,17 +101,9 @@ final class Inertia
     /**
      * Returns a `409` Inertia location response for Inertia requests, or a standard `302` redirect otherwise.
      *
-     * Usage example:
-     *
-     * ```php
-     * return \yii\inertia\Inertia::location('/login');
-     * ```
-     *
-     * @param array|string $url Destination URL or route array accepted by `Url::to()`.
+     * @param array<array-key, mixed>|string $url Destination URL or route array accepted by `Url::to()`.
      *
      * @return Response Response instance with the appropriate status code and headers for the request type.
-     *
-     * @phpstan-param array<string, mixed>|string $url
      */
     public static function location(array|string $url): Response
     {
@@ -165,16 +113,6 @@ final class Inertia
     /**
      * Creates a prop that merges with existing client-side data during partial reloads instead of replacing it.
      *
-     * Usage example:
-     *
-     * ```php
-     * \yii\inertia\Inertia::render(
-     *     'Users/Index', [
-     *         'users' => \yii\inertia\Inertia::merge($paginatedUsers)->append('data', matchOn: 'id'),
-     *     ]
-     * );
-     * ```
-     *
      * @param Closure|mixed $value Value or closure to merge.
      *
      * @return MergeProp Prop instance that merges with existing client-side data during partial reloads instead of
@@ -182,83 +120,41 @@ final class Inertia
      */
     public static function merge(mixed $value): MergeProp
     {
-        return new MergeProp($value);
+        return Prop::merge($value);
     }
 
     /**
-     * Creates a prop that is resolved once and cached on the client side.
+     * Creates a prop that the client may retain and omit from subsequent requests.
      *
-     * Usage example:
+     * @param (Closure(): mixed) $callback Closure resolved when the prop is not already available to the client.
      *
-     * ```php
-     * \yii\inertia\Inertia::render(
-     *     'Settings', [
-     *         'countries' => \yii\inertia\Inertia::once(fn () => Country::find()->all())->until(3600),
-     *     ]
-     * );
-     * ```
-     *
-     * @param Closure $callback Closure resolved once and cached by the client.
-     *
-     * @return OnceProp Prop instance that is resolved once and cached on the client side.
-     *
-     * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback
+     * @return OnceProp Prop instance containing the client-side cache metadata.
      */
     public static function once(Closure $callback): OnceProp
     {
-        return new OnceProp($callback);
+        return Prop::once($callback);
     }
 
     /**
-     * Creates a prop that is only resolved when explicitly requested via a partial reload.
+     * Creates a prop resolved only when a matching partial reload explicitly requests it.
      *
-     * Usage example:
+     * @param (Closure(): mixed) $callback Closure resolved when the client requests this prop.
      *
-     * ```php
-     * \yii\inertia\Inertia::render(
-     *     'Users/Show', [
-     *         'user' => $user->toArray(),
-     *         'activity' => \yii\inertia\Inertia::optional(fn () => $user->getActivityLog()),
-     *     ]
-     * );
-     * ```
-     *
-     * @param Closure $callback Closure resolved only during partial reloads that explicitly request this prop.
-     *
-     * @return OptionalProp Prop instance that is only resolved when explicitly requested via a partial reload.
-     *
-     * @phpstan-param (Closure(): mixed)|(Closure(\yii\web\Request): mixed) $callback
+     * @return OptionalProp Prop instance excluded from standard page responses.
      */
     public static function optional(Closure $callback): OptionalProp
     {
-        return new OptionalProp($callback);
+        return Prop::optional($callback);
     }
 
     /**
-     * Renders an Inertia page response.
+     * Renders an Inertia page through the configured manager.
      *
-     * Returns a JSON page payload with `X-Inertia: true` for Inertia requests, or the initial HTML
-     * shell for standard browser requests.
+     * @param string $component Client-side component name.
+     * @param array<string, mixed> $props Page-specific props.
+     * @param array<string, mixed> $viewData Additional data available to the initial root view.
      *
-     * Usage example:
-     *
-     * ```php
-     * return \yii\inertia\Inertia::render(
-     *     'Dashboard',
-     *     [
-     *         'user' => $user->toArray(),
-     *     ],
-     * );
-     * ```
-     *
-     * @param string $component Frontend component name (for example, `'Dashboard'`, `'User/Show'`).
-     * @param array $props Props serialized and forwarded to the frontend component.
-     * @param array $viewData Additional data available in the root view template only; not sent to the frontend.
-     *
-     * @return Response Response instance with the appropriate content and headers for the request type.
-     *
-     * @phpstan-param array<string, mixed> $props
-     * @phpstan-param array<string, mixed> $viewData
+     * @return Response Yii response containing the initial HTML document or Inertia JSON page.
      */
     public static function render(string $component, array $props = [], array $viewData = []): Response
     {
@@ -266,22 +162,28 @@ final class Inertia
     }
 
     /**
-     * Registers props shared with every subsequent Inertia response in the current request.
+     * Creates a prop containing infinite-scroll data and pagination metadata.
      *
-     * Usage example:
+     * @param mixed $value Paginated data exposed as the prop value.
+     * @param ScrollMetadata|(Closure(mixed): mixed) $metadata Pagination metadata or a callback receiving the resolved
+     * value.
+     * @param string $wrapper Dot-notated merge path within the prop value.
      *
-     * ```php
-     * // share a single value using dot notation.
-     * \yii\inertia\Inertia::share('auth.user', fn() => \Yii::$app->user->identity);
+     * @return ScrollProp Prop instance containing infinite-scroll semantics.
+     */
+    public static function scroll(
+        mixed $value,
+        ScrollMetadata|Closure $metadata,
+        string $wrapper = 'data',
+    ): ScrollProp {
+        return Prop::scroll($value, $metadata, $wrapper);
+    }
+
+    /**
+     * Registers one or more props shared with subsequent page responses in the current request.
      *
-     * // share multiple values at once.
-     * \yii\inertia\Inertia::share(['locale' => 'en', 'flash' => []]);
-     * ```
-     *
-     * @param array|string $key Dot-notation key or an array of key-value pairs to share.
-     * @param mixed $value Value to share; ignored when `$key` is an array.
-     *
-     * @phpstan-param array<string, mixed>|string $key
+     * @param array<string, mixed>|string $key Shared values or a dot-notated prop key.
+     * @param mixed $value Value registered when `$key` is a string.
      */
     public static function share(array|string $key, mixed $value = null): void
     {

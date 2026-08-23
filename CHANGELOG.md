@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.1.1 Under development
+## 0.2.0 Under development
 
 ### Changed
 
@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: add configuration for Coderabbit and update Dependabot settings.
 - docs: update `CHANGELOG.md` format to reference conventional commits.
 - chore: add social media links to `README.md`.
+- feat!: convert the package into the Yii2 adapter for the framework-agnostic `php-forge/inertia` protocol core.
 
 ## 0.1.0 April 16, 2026
 

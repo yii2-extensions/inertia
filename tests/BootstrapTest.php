@@ -4,88 +4,48 @@ declare(strict_types=1);
 
 namespace yii\inertia\tests;
 
-use PHPUnit\Framework\Attributes\DataProviderExternal;
 use stdClass;
 use Yii;
 use yii\base\Event;
-use yii\inertia\Manager;
-use yii\inertia\tests\providers\BootstrapProvider;
+use yii\inertia\{Bootstrap, Manager};
 use yii\web\Response;
 
 /**
  * Unit tests for {@see \yii\inertia\Bootstrap}.
- *
- * {@see BootstrapProvider} for test case data providers.
  */
 final class BootstrapTest extends TestCase
 {
-    public function testBeforeSendAppendsVaryHeaderWhenAlreadyPresent(): void
+    public function testBeforeSendConvertsFragmentRedirect(): void
     {
-        $this->prepareInertiaRequest('PUT');
+        $this->prepareBootstrappedInertiaRequest();
         $this->setAbsoluteUrl('/posts');
 
-        $response = Yii::$app->getResponse();
+        $response = Yii::$app->getResponse()->redirect('/posts#comments');
 
-        $response->getHeaders()->set('Vary', 'Accept-Encoding');
-        $response->setStatusCode(302);
-
-        $response->trigger(Response::EVENT_BEFORE_SEND);
-
-        self::assertSame(
-            'Accept-Encoding, X-Inertia',
-            $response->getHeaders()->get('Vary'),
-            'Vary header should append X-Inertia to existing values.',
+        self::assertTrue(
+            $response->hasEventHandlers(Response::EVENT_BEFORE_SEND),
+            'An Inertia request should register the response normalizer.',
         );
-    }
 
-    public function testBeforeSendAppendsVaryHeaderWhenWhitespaceOnly(): void
-    {
-        $this->prepareInertiaRequest();
-        $this->setAbsoluteUrl('/dashboard');
-
-        $response = Yii::$app->getResponse();
-
-        $response->getHeaders()->set('Vary', '   ');
         $response->trigger(Response::EVENT_BEFORE_SEND);
 
         self::assertSame(
-            'X-Inertia',
-            $response->getHeaders()->get('Vary'),
-            "Whitespace-only Vary header should be treated as empty and set to 'X-Inertia'.",
+            409,
+            $response->statusCode,
+            "An Inertia fragment redirect should return '409'.",
         );
-    }
-
-    public function testBeforeSendDoesNotDuplicateVaryHeader(): void
-    {
-        $this->prepareInertiaRequest();
-        $this->setAbsoluteUrl('/dashboard');
-
-        $response = Yii::$app->getResponse();
-
-        $response->getHeaders()->set('Vary', 'X-Inertia');
-        $response->trigger(Response::EVENT_BEFORE_SEND);
-
         self::assertSame(
-            'X-Inertia',
-            $response->getHeaders()->get('Vary'),
-            'Vary header should not duplicate X-Inertia when already present.',
+            'https://example.test/posts#comments',
+            $response->getHeaders()->get('X-Inertia-Redirect'),
+            'The fragment redirect should use the core protocol header.',
         );
-    }
-
-    public function testBeforeSendDoesNotDuplicateVaryHeaderWithSpaces(): void
-    {
-        $this->prepareInertiaRequest();
-        $this->setAbsoluteUrl('/dashboard');
-
-        $response = Yii::$app->getResponse();
-
-        $response->getHeaders()->set('Vary', 'Accept-Encoding, X-Inertia');
-        $response->trigger(Response::EVENT_BEFORE_SEND);
-
-        self::assertSame(
-            'Accept-Encoding, X-Inertia',
-            $response->getHeaders()->get('Vary'),
-            'Vary header should detect X-Inertia even with leading spaces from comma-separated values.',
+        self::assertFalse(
+            $response->getHeaders()->has('Location'),
+            'A fragment redirect should remove Location.',
+        );
+        self::assertFalse(
+            $response->getHeaders()->has('X-Redirect'),
+            'A fragment redirect should remove Yii X-Redirect.',
         );
     }
 
@@ -95,40 +55,57 @@ final class BootstrapTest extends TestCase
 
         $response = Yii::$app->getResponse()->redirect('/target');
 
+        self::assertFalse(
+            Yii::$app->has('inertia', true),
+            'The Inertia manager should initially remain lazy.',
+        );
+        self::assertFalse(
+            $response->hasEventHandlers(Response::EVENT_BEFORE_SEND),
+            'A standard request should not register the response normalizer.',
+        );
+
         $response->trigger(Response::EVENT_BEFORE_SEND);
 
         self::assertSame(
             302,
             $response->statusCode,
-            'Non-Inertia redirect should keep its original status code.',
+            'A standard redirect should retain its status.',
         );
         self::assertNull(
             $response->getHeaders()->get('Vary'),
-            'Non-Inertia response should not set Vary header.',
+            'A standard response should not add Inertia headers.',
+        );
+        self::assertFalse(
+            Yii::$app->has('inertia', true),
+            'A standard request should not instantiate the Inertia manager.',
         );
     }
 
-    #[DataProviderExternal(BootstrapProvider::class, 'redirectNotNormalizedTo303')]
-    public function testBeforeSendDoesNotNormalizeRedirectTo303(string $method, int $statusCode): void
+    public function testBeforeSendDoesNotNormalizeRedirectWithoutLocation(): void
     {
-        $this->prepareInertiaRequest($method);
-        $this->setAbsoluteUrl('/resource');
+        $this->prepareBootstrappedInertiaRequest('PUT');
+        $this->setAbsoluteUrl('/posts');
 
         $response = Yii::$app->getResponse();
 
-        $response->setStatusCode($statusCode);
+        $response->setStatusCode(302);
         $response->trigger(Response::EVENT_BEFORE_SEND);
 
         self::assertSame(
-            $statusCode,
+            302,
             $response->statusCode,
-            "$method request with $statusCode should not be normalized to 303.",
+            'A status without a location is not a redirect to normalize.',
+        );
+        self::assertSame(
+            'X-Inertia',
+            $response->getHeaders()->get('Vary'),
+            'Inertia responses should still vary.',
         );
     }
 
     public function testBeforeSendIgnoresNonResponseSender(): void
     {
-        $this->prepareInertiaRequest();
+        $this->prepareBootstrappedInertiaRequest();
 
         $response = Yii::$app->getResponse();
 
@@ -139,13 +116,53 @@ final class BootstrapTest extends TestCase
 
         self::assertNull(
             $response->getHeaders()->get('Vary'),
-            'Event with non-Response sender should be ignored without modifying headers.',
+            'A non-response event sender should be ignored.',
         );
     }
 
-    public function testBeforeSendNormalizesInertiaRedirects(): void
+    public function testBeforeSendKeepsPermanentRedirectStatus(): void
     {
-        $this->prepareInertiaRequest('PUT');
+        $this->prepareBootstrappedInertiaRequest('PUT');
+        $this->setAbsoluteUrl('/posts');
+
+        $response = Yii::$app->getResponse();
+
+        $response->setStatusCode(301);
+        $response->getHeaders()->set('Location', '/target');
+        $response->trigger(Response::EVENT_BEFORE_SEND);
+
+        self::assertSame(
+            301,
+            $response->statusCode,
+            "The core only converts '302' mutation redirects to '303'",
+        );
+        self::assertSame(
+            '/target',
+            $response->getHeaders()->get('Location'),
+            'The location should be retained.',
+        );
+    }
+
+    public function testBeforeSendMergesVaryWithoutDuplicates(): void
+    {
+        $this->prepareBootstrappedInertiaRequest();
+        $this->setAbsoluteUrl('/dashboard');
+
+        $response = Yii::$app->getResponse();
+
+        $response->getHeaders()->set('Vary', 'Accept-Encoding, X-INERTIA');
+        $response->trigger(Response::EVENT_BEFORE_SEND);
+
+        self::assertSame(
+            'Accept-Encoding, X-INERTIA',
+            $response->getHeaders()->get('Vary'),
+            'Vary should preserve application values without duplicating X-Inertia.',
+        );
+    }
+
+    public function testBeforeSendNormalizesMutationRedirect(): void
+    {
+        $this->prepareBootstrappedInertiaRequest('PUT');
         $this->setAbsoluteUrl('/posts');
 
         $response = Yii::$app->getResponse()->redirect('/target');
@@ -155,39 +172,39 @@ final class BootstrapTest extends TestCase
         self::assertSame(
             303,
             $response->statusCode,
-            "PUT redirect should be normalized to '303'.",
+            "A '302' redirect after an Inertia PUT should become '303'.",
         );
         self::assertSame(
             'https://example.test/target',
             $response->getHeaders()->get('Location'),
-            'Location header should contain the absolute redirect URL.',
+            'The normalized redirect should retain Yii absolute URL generation.',
         );
         self::assertFalse(
             $response->getHeaders()->has('X-Redirect'),
-            'X-Redirect header should be removed after normalization.',
-        );
-        self::assertSame(
-            'X-Inertia',
-            $response->getHeaders()->get('Vary'),
-            'Vary header should include X-Inertia.',
+            'Yii X-Redirect should be normalized to Location.',
         );
     }
 
-    #[DataProviderExternal(BootstrapProvider::class, 'redirectNormalizedTo303')]
-    public function testBeforeSendNormalizesRedirectTo303(string $method, int $statusCode): void
+    public function testBeforeSendPrefetchKeepsFragmentRedirect(): void
     {
-        $this->prepareInertiaRequest($method);
-        $this->setAbsoluteUrl('/resource');
+        $this->prepareBootstrappedInertiaRequest();
+        $this->setAbsoluteUrl('/posts');
 
-        $response = Yii::$app->getResponse();
+        Yii::$app->getRequest()->getHeaders()->set('Purpose', 'prefetch');
 
-        $response->setStatusCode($statusCode);
+        $response = Yii::$app->getResponse()->redirect('/posts#comments');
+
         $response->trigger(Response::EVENT_BEFORE_SEND);
 
         self::assertSame(
-            303,
+            302,
             $response->statusCode,
-            "$method request with $statusCode should be normalized to 303.",
+            'A prefetch fragment redirect should remain a standard redirect.',
+        );
+        self::assertSame(
+            'https://example.test/posts#comments',
+            $response->getHeaders()->get('Location'),
+            'A prefetch fragment redirect should retain Location.',
         );
     }
 
@@ -209,12 +226,12 @@ final class BootstrapTest extends TestCase
         self::assertInstanceOf(
             Manager::class,
             $manager,
-            'Inertia component should be an instance of Manager.',
+            'The configured component should remain a Manager.',
         );
         self::assertSame(
             'frontend-app',
             $manager->id,
-            'User-defined component configuration should not be overridden by Bootstrap.',
+            'Bootstrap should preserve user component configuration.',
         );
     }
 
@@ -223,12 +240,121 @@ final class BootstrapTest extends TestCase
         self::assertSame(
             dirname(__DIR__) . DIRECTORY_SEPARATOR . 'src',
             Yii::getAlias('@inertia'),
-            '@inertia alias should resolve to the package src/ directory.',
+            'Bootstrap should register the package alias.',
         );
         self::assertInstanceOf(
             Manager::class,
             Yii::$app->get('inertia'),
-            'Bootstrap should register the inertia component automatically.',
+            'Bootstrap should register the adapter manager.',
         );
+    }
+
+    public function testNormalizeResponseAcceptsOnlyCoreRedirectStatuses(): void
+    {
+        $this->prepareInertiaRequest();
+        $this->setAbsoluteUrl('/posts');
+
+        $manager = Yii::$app->get('inertia');
+
+        self::assertInstanceOf(
+            Manager::class,
+            $manager,
+            'The application should expose the Inertia manager.',
+        );
+
+        foreach ([301, 302, 303, 307, 308] as $statusCode) {
+            $response = new Response();
+
+            $response->setStatusCode($statusCode);
+            $response->getHeaders()->set('X-Redirect', '/target');
+            $manager->normalizeResponse($response);
+
+            self::assertSame(
+                $statusCode,
+                $response->statusCode,
+                "Status {$statusCode} should be normalized.",
+            );
+            self::assertSame(
+                '/target',
+                $response->getHeaders()->get('Location'),
+                "Status {$statusCode} should use Location.",
+            );
+            self::assertFalse(
+                $response->getHeaders()->has('X-Redirect'),
+                "Status {$statusCode} should remove X-Redirect.",
+            );
+        }
+
+        foreach ([300, 304, 306, 309] as $statusCode) {
+            $response = new Response();
+
+            $response->setStatusCode($statusCode);
+            $response->getHeaders()->set('X-Redirect', '/target');
+
+            $manager->normalizeResponse($response);
+
+            self::assertSame(
+                $statusCode,
+                $response->statusCode,
+                "Status {$statusCode} should remain unchanged.",
+            );
+            self::assertSame(
+                '/target',
+                $response->getHeaders()->get('X-Redirect'),
+                "Status {$statusCode} should remain unnormalized.",
+            );
+            self::assertFalse(
+                $response->getHeaders()->has('Location'),
+                "Status {$statusCode} should not add Location.",
+            );
+        }
+    }
+
+    public function testNormalizeResponsePrefersYiiAjaxRedirectHeader(): void
+    {
+        $this->prepareInertiaRequest();
+        $this->setAbsoluteUrl('/posts');
+
+        $response = Yii::$app->getResponse();
+
+        $response->setStatusCode(302);
+        $response->getHeaders()->set('X-Redirect', '/posts#yii-ajax-target');
+        $response->getHeaders()->set('Location', '/standard-target');
+
+        $manager = Yii::$app->get('inertia');
+
+        self::assertInstanceOf(
+            Manager::class,
+            $manager,
+            'The application should expose the Inertia manager.',
+        );
+
+        $manager->normalizeResponse($response);
+
+        self::assertSame(
+            'https://example.test/posts#yii-ajax-target',
+            $response->getHeaders()->get('X-Inertia-Redirect'),
+            'Yii X-Redirect should take precedence when both redirect headers are present.',
+        );
+        self::assertSame(
+            409,
+            $response->statusCode,
+            'The preferred fragment redirect should use the core response.',
+        );
+        self::assertFalse(
+            $response->getHeaders()->has('Location'),
+            'Normalization should remove the stale Location.',
+        );
+        self::assertFalse(
+            $response->getHeaders()->has('X-Redirect'),
+            'Normalization should remove X-Redirect.',
+        );
+    }
+
+    private function prepareBootstrappedInertiaRequest(string $method = 'GET'): void
+    {
+        $this->prepareInertiaRequest($method);
+
+        (new Bootstrap())->bootstrap(Yii::$app);
     }
 }

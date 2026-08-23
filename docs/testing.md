@@ -1,6 +1,7 @@
 # Testing
 
-This package contains a PHP test suite with mutation testing support.
+This adapter contains unit and integration coverage for the boundary between Yii2 and `php-forge/inertia`, with
+mutation testing support.
 
 ## Automated refactoring and coding standards
 
@@ -69,7 +70,7 @@ composer static -- --memory-limit=512M
 
 ## Next steps
 
-- 📚 [Installation Guide](installation.md)
-- ⚙️ [Configuration Reference](configuration.md)
-- 💡 [Usage Examples](examples.md)
+- 📚 [Installation guide](installation.md)
+- ⚙️ [Configuration reference](configuration.md)
+- 💡 [Usage examples](examples.md)
 - 📖 [Readme](../README.md)

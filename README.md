@@ -5,7 +5,7 @@
         <source media="(prefers-color-scheme: light)" srcset="https://www.yiiframework.com/image/design/logo/yii3_full_for_light.svg">
         <img src="https://www.yiiframework.com/image/design/logo/yii3_full_for_light.svg" alt="Yii Framework" width="80%">
     </picture>
-    <h1 align="center">Inertia</h1>
+    <h1 align="center">Inertia for Yii2</h1>
     <br>
 </p>
 <!-- markdownlint-enable MD041 -->
@@ -26,30 +26,31 @@
 </p>
 
 <p align="center">
-    <strong>Inertia.js server-side integration layer for <a href="https://github.com/yiisoft/yii2/tree/22.0">Yii2</a></strong><br>
-    <em>Server-driven pages, shared props, redirects, and asset version handling without jQuery</em>
+    <strong>Yii2 adapter for the framework-agnostic <a href="https://github.com/php-forge/inertia">PHPForge Inertia core</a></strong><br>
+    <em>Connect Yii requests, responses, views, sessions, and redirects to the Inertia protocol</em>
 </p>
 
-## Features
+## Architecture
 
-<picture>
-    <source media="(max-width: 767px)" srcset="./docs/svgs/features-mobile.svg">
-    <img src="./docs/svgs/features.svg" alt="Feature Overview" style="width: 100%;">
-</picture>
+The packages have deliberately separate responsibilities:
 
-## Overview
+- [`php-forge/inertia`](https://github.com/php-forge/inertia) implements the framework-agnostic protocol, page model,
+  prop resolution, headers, redirects, and result objects.
+- `yii2-extensions/inertia` adapts Yii2 application state to that core and maps its results back to Yii responses.
+- [`php-forge/vite`](https://github.com/php-forge/vite) provides optional, framework-agnostic Vite manifest and development
+  server support.
 
-`yii2-extensions/inertia` is the server-side base package for building modern Inertia-driven pages on top of Yii2.
-It does not ship a client adapter. Instead, it defines the server contract that future packages such as
-`yii2-extensions/inertia-vue`, `yii2-extensions/inertia-react`, and `yii2-extensions/inertia-svelte` can reuse.
+This adapter does not contain Vite integration or framework-specific JavaScript client packages.
 
 ## Installation
 
+While `0.2` is under development, install the adapter with:
+
 ```bash
-composer require yii2-extensions/inertia:^0.1
+composer require yii2-extensions/inertia:^0.2@dev
 ```
 
-Register the bootstrap class in your application configuration:
+Register its bootstrap class:
 
 ```php
 return [
@@ -57,9 +58,9 @@ return [
 ];
 ```
 
-## Quick start
+The adapter installs `php-forge/inertia` as its protocol dependency.
 
-Render a page directly from a controller action:
+## Quick start
 
 ```php
 use yii\inertia\Inertia;
@@ -78,7 +79,7 @@ final class SiteController extends Controller
 }
 ```
 
-Or extend the convenience controller:
+The convenience controller exposes the same operation as `$this->inertia()`:
 
 ```php
 use yii\inertia\web\Controller;
@@ -88,17 +89,12 @@ final class SiteController extends Controller
 {
     public function actionIndex(): Response
     {
-        return $this->inertia(
-            'Dashboard',
-            [
-                'stats' => ['visits' => 42],
-            ]
-        );
+        return $this->inertia('Dashboard', ['stats' => ['visits' => 42]]);
     }
 }
 ```
 
-## Configuration example
+## Configuration
 
 ```php
 use yii\inertia\Manager;
@@ -115,64 +111,42 @@ return [
 
                 return is_file($path) ? (string) filemtime($path) : '';
             },
-            'shared' => ['app.name' => static fn(): string => Yii::$app->name],
+            'shared' => [
+                'app.name' => static fn(): string => Yii::$app->name,
+            ],
         ],
     ],
 ];
 ```
 
-## Dev server support (Vite)
+Version callbacks may accept the current `yii\web\Request`. Prop callbacks are framework-neutral zero-argument
+closures and are resolved by `php-forge/inertia`.
 
-The bundled `\yii\inertia\Vite` helper component renders asset tags for both development and production. When `devMode`
-is `true`, it emits `@vite/client` plus each configured entrypoint from `devServerUrl`, enabling Vite's HMR WebSocket
-end-to-end. When `devMode` is `false`, it reads the manifest at `manifestPath` and renders hashed asset tags for
-production.
+## Prop factories
 
-Typical development flow: run `npm run dev` to start the Vite dev server and launch Yii2 with a dev environment flag
-(for example, `YII_ENV=dev ./yii serve`). `YII_ENV` does not toggle `Vite::$devMode` on its own; your application
-configuration must wire the two together, for example:
+The `yii\inertia\Inertia` facade delegates prop creation directly to the core:
 
 ```php
-'components' => [
-    'inertiaVite' => [
-        'class' => \yii\inertia\Vite::class,
-        'devMode' => YII_ENV === 'dev',
-        // ...
-    ],
-],
-```
-
-For framework-specific setup, see:
-
-- [`yii2-extensions/inertia-react`](https://github.com/yii2-extensions/inertia-react) — React Refresh preamble auto-injection.
-- [`yii2-extensions/inertia-vue`](https://github.com/yii2-extensions/inertia-vue) — Vue HMR (no extra preamble).
-
-## Prop types (v3)
-
-The package supports the Inertia v3 prop types for fine-grained control over when and how props are resolved:
-
-```php
-use yii\inertia\Inertia;
-
 return Inertia::render(
     'Dashboard',
     [
-        'stats' => $stats,                                              // regular prop
-        'users' => Inertia::defer(fn () => User::find()->all()),        // loaded after render
-        'activity' => Inertia::optional(fn () => $user->getActivity()), // only on partial reload
-        'auth' => Inertia::always(fn () => ['user' => $identity]),      // always included
-        'items' => Inertia::merge($paginated)->append('data', 'id'),    // merge instead of replace
-        'countries' => Inertia::once(fn () => Country::find()->all()),  // resolved once, cached
+        'stats' => Inertia::always($stats),
+        'users' => Inertia::defer(static fn(): array => User::find()->asArray()->all()),
+        'activity' => Inertia::optional(static fn(): array => $activity),
+        'items' => Inertia::merge($items)->append('data', 'id'),
+        'countries' => Inertia::once(static fn(): array => $countries)->as('countries-v1'),
     ],
 );
 ```
 
-See the [Usage Examples](docs/examples.md) for detailed documentation on each prop type.
+The facade also provides `deepMerge()` and `scroll()`. See the
+[`php-forge/inertia` documentation](https://github.com/php-forge/inertia) for protocol and prop semantics.
 
 ## Validation and flash messages
 
-This package maps the session flash key `errors` to `props.errors` and exposes all remaining flashes at the top-level
-`flash` page key. A typical validation redirect looks like this:
+The adapter reads the session flash key configured by `Manager::$errorFlashKey` and passes it to the core as
+`props.errors`. Other flashes are emitted in the top-level `flash` page field. Flashes are consumed only after a page
+result is created, so version conflicts and failed page creation preserve them.
 
 ```php
 if (!$model->validate()) {
@@ -188,7 +162,7 @@ return $this->redirect(['view', 'id' => $model->id]);
 
 ## CSRF protection
 
-Drop in `yii\inertia\web\Request` to enable Inertia's automatic cookie-to-header CSRF flow:
+Use `yii\inertia\web\Request` for Inertia's cookie-to-header CSRF flow:
 
 ```php
 'request' => [
@@ -197,22 +171,17 @@ Drop in `yii\inertia\web\Request` to enable Inertia's automatic cookie-to-header
 ],
 ```
 
-Inertia's HTTP client reads the `XSRF-TOKEN` cookie and sends it as `X-XSRF-TOKEN` automatically no client-side
-configuration required. See the [Configuration Reference](docs/configuration.md) for details.
+## Vite
 
-## Package boundaries
-
-This repository intentionally does not include Vue, React, or Svelte bootstrapping. Those concerns belong in separate
-client adapter packages built on top of the server contract defined here.
+Install and configure [`php-forge/vite`](https://github.com/php-forge/vite) when the application uses Vite. Asset
+discovery and development-server behavior are intentionally independent of this Yii2 adapter.
 
 ## Documentation
 
-For detailed configuration options and advanced usage.
-
-- 📚 [Installation Guide](docs/installation.md)
-- ⚙️ [Configuration Reference](docs/configuration.md)
-- 💡 [Usage Examples](docs/examples.md)
-- 🧪 [Testing Guide](docs/testing.md)
+- [Installation guide](docs/installation.md)
+- [Configuration reference](docs/configuration.md)
+- [Usage examples](docs/examples.md)
+- [Testing guide](docs/testing.md)
 
 ## Package information
 
