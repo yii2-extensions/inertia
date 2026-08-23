@@ -165,7 +165,7 @@ final class Inertia
      * Creates a prop containing infinite-scroll data and pagination metadata.
      *
      * @param mixed $value Paginated data exposed as the prop value.
-     * @param ScrollMetadata|(Closure(mixed): mixed) $metadata Pagination metadata or a callback receiving the resolved
+     * @param (Closure(mixed): mixed)|ScrollMetadata $metadata Pagination metadata or a callback receiving the resolved
      * value.
      * @param string $wrapper Dot-notated merge path within the prop value.
      *

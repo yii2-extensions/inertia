@@ -427,7 +427,7 @@ final class Manager extends Component
      *
      * @throws InvalidConfigException If flash keys or validation errors have an unsupported structure.
      *
-     * @return array{array<string, string|list<string>>, array<string, mixed>} Validation errors and remaining flashes.
+     * @return array{array<string, list<string>|string>, array<string, mixed>} Validation errors and remaining flashes.
      */
     private function readFlashes(): array
     {
@@ -463,7 +463,7 @@ final class Manager extends Component
      *
      * @throws InvalidConfigException If the error value does not contain supported validation messages.
      *
-     * @return array<string, string|list<string>> Validation messages indexed by field name.
+     * @return array<string, list<string>|string> Validation messages indexed by field name.
      */
     private function validateErrors(mixed $value): array
     {

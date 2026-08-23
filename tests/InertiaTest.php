@@ -173,6 +173,7 @@ final class InertiaTest extends TestCase
 
         Inertia::getVersion();
     }
+
     public function testPropFactoriesDelegateToFrameworkAgnosticCore(): void
     {
         self::assertSame(
