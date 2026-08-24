@@ -25,7 +25,7 @@
     ],
     "require": {
         "php": ">=8.3",
-        "php-forge/inertia": "^0.1@dev",
+        "php-forge/inertia": "^0.1",
         "yiisoft/yii2": "^22.0@dev"
     },
     "require-dev": {
@@ -52,7 +52,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.2.x-dev"
+            "dev-main": "0.3.x-dev"
         },
         "scaffold": {
             "allowed-packages": [

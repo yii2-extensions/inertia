@@ -43,10 +43,8 @@ This adapter does not contain Vite integration or framework-specific JavaScript 
 
 ## Installation
 
-While `0.2` is under development, install the adapter with:
-
 ```bash
-composer require yii2-extensions/inertia:^0.2@dev
+composer require yii2-extensions/inertia:^0.2
 ```
 
 Register its bootstrap class:
