@@ -21,14 +21,23 @@ final class ManagerTest extends TestCase
     public function testAdapterRejectsInvalidErrorFlashStructuresWithoutConsumingThem(): void
     {
         $invalidErrors = [
-            'scalar' => 'Invalid',
-            'numeric key' => [0 => 'Invalid'],
-            'non-string value' => ['email' => 42],
-            'non-list messages' => ['email' => ['first' => 'Invalid']],
-            'non-string message' => ['email' => ['Invalid', 42]],
+            'scalar' => ['Invalid', 'The Inertia error flash must be an array.'],
+            'numeric key' => [[0 => 'Invalid'], 'Inertia error keys must be strings.'],
+            'non-string value' => [
+                ['email' => 42],
+                'Inertia errors must contain strings or lists of strings.',
+            ],
+            'non-list messages' => [
+                ['email' => ['first' => 'Invalid']],
+                'Inertia errors must contain strings or lists of strings.',
+            ],
+            'non-string message' => [
+                ['email' => ['Invalid', 42]],
+                'Inertia error message lists must contain only strings.',
+            ],
         ];
 
-        foreach ($invalidErrors as $case => $errors) {
+        foreach ($invalidErrors as $case => [$errors, $expectedMessage]) {
             Yii::$app->getSession()->setFlash('errors', $errors);
 
             try {
@@ -37,7 +46,12 @@ final class ManagerTest extends TestCase
                 self::fail(
                     "The {$case} error flash should be rejected.",
                 );
-            } catch (InvalidConfigException) {
+            } catch (InvalidConfigException $exception) {
+                self::assertSame(
+                    $expectedMessage,
+                    $exception->getMessage(),
+                    "The {$case} error flash exception should describe the invalid structure.",
+                );
                 self::assertSame(
                     ['errors' => $errors],
                     Yii::$app->getSession()->getAllFlashes(false),
@@ -244,7 +258,11 @@ final class ManagerTest extends TestCase
 
         $response = $this->manager()->location('/login');
 
-        self::assertSame(302, $response->statusCode, 'A standard location visit should return 302.');
+        self::assertSame(
+            302,
+            $response->statusCode,
+            'A standard location visit should return 302.',
+        );
         self::assertSame(
             'https://example.test/login',
             $response->getHeaders()->get('Location'),
@@ -266,7 +284,7 @@ final class ManagerTest extends TestCase
 
         $manager = $this->manager();
 
-        $manager->protocol = new Protocol($clock);
+        $manager->protocol = Protocol::create($clock);
 
         $response = $manager->render(
             'Settings',
@@ -280,7 +298,7 @@ final class ManagerTest extends TestCase
         );
         self::assertSame(
             ['settings' => ['prop' => 'settings', 'expiresAt' => 1_720_000_060_000]],
-            $response->data->onceProps,
+            $response->data->onceProps(),
             'The configured protocol clock should resolve once-prop expiration metadata.',
         );
     }

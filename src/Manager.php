@@ -12,9 +12,11 @@ use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\helpers\{ArrayHelper, Json, Url};
+use yii\inertia\Exception\Message;
 use yii\web\{Request, Response};
 
 use function array_is_list;
+use function in_array;
 use function is_array;
 use function is_int;
 use function is_string;
@@ -132,6 +134,7 @@ final class Manager extends Component
     public function location(array|string $url): Response
     {
         $request = Yii::$app->getRequest();
+
         $result = $this->getProtocol()->location(
             $this->createRequestContext($request),
             Url::to($url, true),
@@ -189,20 +192,18 @@ final class Manager extends Component
 
         [$errors, $flash] = $this->readFlashes();
 
+        $input = PageInput::create($component, $props, $this->getVersion())
+            ->withSharedProps($this->shared)
+            ->withErrors($errors)
+            ->withFlash($flash)
+            ->withEncryptHistory($this->encryptHistory)
+            ->withClearHistory($this->clearHistory)
+            ->withPreserveFragment($this->preserveFragment)
+            ->withSharedPropsExposure($this->exposeSharedProps);
+
         $result = $this->getProtocol()->page(
             $this->createRequestContext($request),
-            new PageInput(
-                component: $component,
-                props: $props,
-                version: $this->getVersion(),
-                sharedProps: $this->shared,
-                errors: $errors,
-                flash: $flash,
-                encryptHistory: $this->encryptHistory,
-                clearHistory: $this->clearHistory,
-                preserveFragment: $this->preserveFragment,
-                exposeSharedProps: $this->exposeSharedProps,
-            ),
+            $input,
         );
 
         if ($result instanceof PageResult) {
@@ -324,7 +325,7 @@ final class Manager extends Component
      */
     private function getProtocol(): Protocol
     {
-        return $this->protocol ??= new Protocol();
+        return $this->protocol ??= Protocol::create();
     }
 
     /**
@@ -439,7 +440,9 @@ final class Manager extends Component
 
         foreach (Yii::$app->getSession()->getAllFlashes(false) as $key => $value) {
             if (!is_string($key)) {
-                throw new InvalidConfigException('Inertia session flash keys must be strings.');
+                throw new InvalidConfigException(
+                    Message::SESSION_FLASH_KEY_INVALID->getMessage(),
+                );
             }
 
             $flashes[$key] = $value;
@@ -468,14 +471,18 @@ final class Manager extends Component
     private function validateErrors(mixed $value): array
     {
         if (!is_array($value)) {
-            throw new InvalidConfigException('The Inertia error flash must be an array.');
+            throw new InvalidConfigException(
+                Message::ERROR_FLASH_INVALID->getMessage(),
+            );
         }
 
         $errors = [];
 
         foreach ($value as $key => $messages) {
             if (!is_string($key)) {
-                throw new InvalidConfigException('Inertia error keys must be strings.');
+                throw new InvalidConfigException(
+                    Message::ERROR_KEY_INVALID->getMessage(),
+                );
             }
 
             if (is_string($messages)) {
@@ -485,14 +492,18 @@ final class Manager extends Component
             }
 
             if (!is_array($messages) || !array_is_list($messages)) {
-                throw new InvalidConfigException('Inertia errors must contain strings or lists of strings.');
+                throw new InvalidConfigException(
+                    Message::ERROR_VALUE_INVALID->getMessage(),
+                );
             }
 
             $normalized = [];
 
             foreach ($messages as $message) {
                 if (!is_string($message)) {
-                    throw new InvalidConfigException('Inertia error message lists must contain only strings.');
+                    throw new InvalidConfigException(
+                        Message::ERROR_MESSAGE_LIST_INVALID->getMessage(),
+                    );
                 }
 
                 $normalized[] = $message;
