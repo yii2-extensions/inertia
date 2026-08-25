@@ -17,6 +17,7 @@ use PHPForge\Inertia\Prop\{
 };
 use Yii;
 use yii\base\InvalidConfigException;
+use yii\inertia\Exception\Message;
 use yii\web\Response;
 
 /**
@@ -203,7 +204,7 @@ final class Inertia
 
         if (!$manager instanceof Manager) {
             throw new InvalidConfigException(
-                'The "inertia" application component must be an instance of ' . Manager::class . '.',
+                Message::APPLICATION_COMPONENT_INVALID->getMessage(Manager::class),
             );
         }
 
