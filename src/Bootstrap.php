@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace yii\inertia;
 
-use PHPForge\Inertia\RequestContext;
+use PHPForge\Inertia\Header;
 use Yii;
 use yii\base\Application;
 use yii\base\{BootstrapInterface, Event};
@@ -28,7 +28,7 @@ final class Bootstrap implements BootstrapInterface
 
         if (
             !$app instanceof WebApplication
-            || !$app->getRequest()->getHeaders()->has(RequestContext::HEADER_INERTIA)
+            || !$app->getRequest()->getHeaders()->has(Header::INERTIA->value)
         ) {
             return;
         }
