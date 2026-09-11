@@ -167,6 +167,7 @@ Use `yii\inertia\web\Request` for Inertia's cookie-to-header CSRF flow:
     'cookieValidationKey' => 'your-secret-key',
 ],
 ```
+
 ## Resolved-page observation
 
 `PHPForge\Inertia\ResolvedPageObserver` forwards the resolved page payload and shared-prop keys to a callback.
@@ -175,7 +176,6 @@ Observer failures propagate to the caller; the observer does not mutate pages or
 Set `Manager::$pageObserver` to a portable observer. Both initial and Inertia responses notify it after page resolution;
 version conflicts do not. The default is `null`, preserving existing applications. This integration requires the core
 0.3 development line.
-
 
 ## Vite
 
