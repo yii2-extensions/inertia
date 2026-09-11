@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use PHPForge\Inertia\Clock\Clock;
 use PHPForge\Inertia\Exception\InvalidPageInputException;
 use PHPForge\Inertia\{Page, Protocol, ResolvedPageObserver};
+use RuntimeException;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\inertia\{Inertia, Manager};
@@ -742,6 +743,42 @@ final class ManagerTest extends TestCase
             $manager->getShared(),
             'A nested shared prop should replace a scalar intermediate value.',
         );
+    }
+
+    public function testThrowRuntimeExceptionWhenPageObserverFailsWithoutConsumingFlashes(): void
+    {
+        $failure = new RuntimeException(
+            'observer failed',
+        );
+
+        $manager = $this->manager();
+
+        $manager->pageObserver = new ResolvedPageObserver(
+            static function (array $payload, array $sharedKeys) use ($failure): never {
+                throw $failure;
+            },
+        );
+
+        Yii::$app->getSession()->setFlash('success', 'Profile saved.');
+
+        try {
+            $manager->render('Dashboard');
+
+            self::fail(
+                'An observer failure should propagate instead of being swallowed.',
+            );
+        } catch (RuntimeException $caught) {
+            self::assertSame(
+                $failure,
+                $caught,
+                'The observer failure should stay primary.',
+            );
+            self::assertSame(
+                ['success' => 'Profile saved.'],
+                Yii::$app->getSession()->getAllFlashes(false),
+                'A failed observer should leave session flashes available for the next request.',
+            );
+        }
     }
 
     public function testVersionConflictDoesNotNotifyPortableObserver(): void
