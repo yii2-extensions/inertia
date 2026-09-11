@@ -8,10 +8,8 @@
 
 ## Install the Yii2 adapter
 
-While version `0.3` is under development, run:
-
 ```bash
-composer require yii2-extensions/inertia:^0.3
+composer require yii2-extensions/inertia:^0.4
 ```
 
 The adapter requires [`php-forge/inertia`](https://github.com/php-forge/inertia), so Composer installs the
@@ -54,13 +52,11 @@ Install [`php-forge/vite`](https://github.com/php-forge/vite) separately when th
 development-server integration:
 
 ```bash
-composer require php-forge/vite:^0.1@dev
+composer require php-forge/vite:^0.3
 ```
 
 This dependency is optional because the Inertia protocol does not require Vite.
 
-## Next steps
+---
 
-- ⚙️ [Configuration reference](configuration.md)
-- 💡 [Usage examples](examples.md)
-- 🧪 [Testing guide](testing.md)
+[← Back to documentation](../README.md#documentation)

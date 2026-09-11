@@ -124,8 +124,6 @@ For Inertia requests, the bootstrap class routes redirect responses through the 
 redirect normalization and fragment-only redirect handling. Existing `Vary` values are preserved and merged with
 `X-Inertia`.
 
-## Next steps
+---
 
-- 📚 [Installation guide](installation.md)
-- 💡 [Usage examples](examples.md)
-- 🧪 [Testing guide](testing.md)
+[← Back to documentation](../README.md#documentation)

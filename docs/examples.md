@@ -128,8 +128,6 @@ therefore follow the [`php-forge/inertia` API](https://github.com/php-forge/iner
 Prop callbacks take no framework argument. Capture application state explicitly or read it from `Yii::$app` inside
 the closure.
 
-## Next steps
+---
 
-- 📚 [Installation guide](installation.md)
-- ⚙️ [Configuration reference](configuration.md)
-- 🧪 [Testing guide](testing.md)
+[← Back to documentation](../README.md#documentation)
