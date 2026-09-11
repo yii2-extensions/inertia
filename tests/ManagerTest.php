@@ -7,7 +7,8 @@ namespace yii\inertia\tests;
 use DateTimeImmutable;
 use PHPForge\Inertia\Clock\Clock;
 use PHPForge\Inertia\Exception\InvalidPageInputException;
-use PHPForge\Inertia\{Page, Protocol};
+use PHPForge\Inertia\{Page, Protocol, ResolvedPageObserver};
+use RuntimeException;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\inertia\{Inertia, Manager};
@@ -377,6 +378,34 @@ final class ManagerTest extends TestCase
         );
     }
 
+    public function testPortableObserverReceivesInitialAndInertiaPages(): void
+    {
+        $observed = [];
+
+        $manager = $this->manager();
+
+        $manager->share('user', ['name' => 'Ada']);
+
+        $manager->pageObserver = new ResolvedPageObserver(
+            static function (array $payload, array $sharedKeys) use (&$observed): void {
+                self::assertArrayHasKey('component', $payload, 'The observer must receive the resolved component.');
+                $observed[] = [$payload['component'], $sharedKeys];
+            },
+        );
+
+        $manager->render('Initial');
+
+        $this->prepareInertiaRequest();
+
+        $manager->render('Visit');
+
+        self::assertSame(
+            [['Initial', ['user']], ['Visit', ['user']]],
+            $observed,
+            'Both response modes must notify the portable observer once with resolved shared keys.',
+        );
+    }
+
     public function testRenderConsumesAndMapsSessionErrorsAndFlash(): void
     {
         $this->prepareInertiaRequest();
@@ -713,6 +742,71 @@ final class ManagerTest extends TestCase
             ['auth' => ['user' => ['name' => 'Jane']]],
             $manager->getShared(),
             'A nested shared prop should replace a scalar intermediate value.',
+        );
+    }
+
+    public function testThrowRuntimeExceptionWhenPageObserverFailsWithoutConsumingFlashes(): void
+    {
+        $failure = new RuntimeException(
+            'observer failed',
+        );
+
+        $manager = $this->manager();
+
+        $manager->pageObserver = new ResolvedPageObserver(
+            static function (array $payload, array $sharedKeys) use ($failure): never {
+                throw $failure;
+            },
+        );
+
+        Yii::$app->getSession()->setFlash('success', 'Profile saved.');
+
+        try {
+            $manager->render('Dashboard');
+
+            self::fail(
+                'An observer failure should propagate instead of being swallowed.',
+            );
+        } catch (RuntimeException $caught) {
+            self::assertSame(
+                $failure,
+                $caught,
+                'The observer failure should stay primary.',
+            );
+            self::assertSame(
+                ['success' => 'Profile saved.'],
+                Yii::$app->getSession()->getAllFlashes(false),
+                'A failed observer should leave session flashes available for the next request.',
+            );
+        }
+    }
+
+    public function testVersionConflictDoesNotNotifyPortableObserver(): void
+    {
+        $this->prepareInertiaRequest();
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Version', 'old');
+
+        $observed = false;
+
+        $manager = $this->manager();
+
+        $manager->version = 'new';
+
+        $manager->pageObserver = new ResolvedPageObserver(
+            static function () use (&$observed): void {
+                $observed = true;
+            },
+        );
+
+        self::assertSame(
+            409,
+            $manager->render('Dashboard')->statusCode,
+            'The adapter must retain version-conflict handling.',
+        );
+        self::assertFalse(
+            $observed,
+            'A version conflict must not notify the page observer.',
         );
     }
 

@@ -6,11 +6,11 @@ namespace yii\inertia;
 
 use Closure;
 use PHPForge\Inertia\{Exception\InvalidRequestContextException, PageInput, Protocol, RequestContext};
+use PHPForge\Inertia\{Header, ResolvedPageObserver};
 use PHPForge\Inertia\Result\{InertiaPageResult, InitialPageResult, PageResult, ProtocolResult};
 use ReflectionFunction;
 use Yii;
-use yii\base\Component;
-use yii\base\InvalidConfigException;
+use yii\base\{Component, InvalidConfigException};
 use yii\helpers\{ArrayHelper, Json, Url};
 use yii\inertia\Exception\Message;
 use yii\web\{Request, Response};
@@ -48,6 +48,10 @@ final class Manager extends Component
      * Root element DOM `id` used by the default root view.
      */
     public string $id = 'app';
+    /**
+     * Optional portable observer notified after page resolution and before response serialization.
+     */
+    public ResolvedPageObserver|null $pageObserver = null;
     /**
      * Whether rendered pages preserve the URL fragment.
      */
@@ -119,7 +123,7 @@ final class Manager extends Component
      */
     public function isInertiaRequest(Request|null $request = null): bool
     {
-        $value = ($request ?? Yii::$app->getRequest())->getHeaders()->get(RequestContext::HEADER_INERTIA);
+        $value = ($request ?? Yii::$app->getRequest())->getHeaders()->get(Header::INERTIA->value);
 
         return is_string($value) && in_array($value, ['true', '1'], true);
     }
@@ -154,7 +158,7 @@ final class Manager extends Component
             return;
         }
 
-        $this->mergeVaryHeader($response, 'X-Inertia');
+        $this->mergeVaryHeader($response, Header::INERTIA->value);
 
         $headers = $response->getHeaders();
         $location = $headers->get('X-Redirect') ?? $headers->get('Location');
@@ -207,6 +211,7 @@ final class Manager extends Component
         );
 
         if ($result instanceof PageResult) {
+            $this->pageObserver?->observe($result->page());
             $this->consumeFlashes();
         }
 
@@ -272,22 +277,21 @@ final class Manager extends Component
      */
     private function createRequestContext(Request $request): RequestContext
     {
+        $supported = [
+            Header::ERROR_BAG->value,
+            Header::EXCEPT_ONCE_PROPS->value,
+            Header::INERTIA->value,
+            Header::INFINITE_SCROLL_MERGE_INTENT->value,
+            Header::PARTIAL_COMPONENT->value,
+            Header::PARTIAL_DATA->value,
+            Header::PARTIAL_EXCEPT->value,
+            Header::PURPOSE->value,
+            Header::RESET->value,
+            Header::VERSION->value,
+        ];
         $headers = [];
 
-        foreach (
-            [
-                RequestContext::HEADER_ERROR_BAG,
-                RequestContext::HEADER_EXCEPT_ONCE_PROPS,
-                RequestContext::HEADER_INERTIA,
-                RequestContext::HEADER_INFINITE_SCROLL_MERGE_INTENT,
-                RequestContext::HEADER_PARTIAL_COMPONENT,
-                RequestContext::HEADER_PARTIAL_DATA,
-                RequestContext::HEADER_PARTIAL_EXCEPT,
-                RequestContext::HEADER_PURPOSE,
-                RequestContext::HEADER_RESET,
-                RequestContext::HEADER_VERSION,
-            ] as $name
-        ) {
+        foreach ($supported as $name) {
             $value = $request->getHeaders()->get($name);
 
             if (is_string($value)) {

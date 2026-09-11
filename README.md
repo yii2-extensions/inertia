@@ -168,6 +168,15 @@ Use `yii\inertia\web\Request` for Inertia's cookie-to-header CSRF flow:
 ],
 ```
 
+## Resolved-page observation
+
+`PHPForge\Inertia\ResolvedPageObserver` forwards the resolved page payload and shared-prop keys to a callback.
+Observer failures propagate to the caller; the observer does not mutate pages or hide callback failures.
+
+Set `Manager::$pageObserver` to a portable observer. Both initial and Inertia responses notify it after page resolution;
+version conflicts do not. The default is `null`, preserving existing applications. This integration requires the core
+0.3 development line.
+
 ## Vite
 
 Install and configure [`php-forge/vite`](https://github.com/php-forge/vite) when the application uses Vite. Asset
@@ -175,10 +184,10 @@ discovery and development-server behavior are intentionally independent of this 
 
 ## Documentation
 
-- [Installation guide](docs/installation.md)
-- [Configuration reference](docs/configuration.md)
-- [Usage examples](docs/examples.md)
-- [Testing guide](docs/testing.md)
+- 📚 [Installation guide](docs/installation.md)
+- ⚙️ [Configuration and adapter reference](docs/configuration.md)
+- 💡 [Usage examples](docs/examples.md)
+- 🧪 [Testing guide](docs/testing.md)
 
 ## Package information
 
