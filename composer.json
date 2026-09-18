@@ -25,7 +25,7 @@
     ],
     "require": {
         "php": ">=8.3",
-        "php-forge/inertia": "^0.3",
+        "php-forge/inertia": "^0.5",
         "yiisoft/yii2": "^22.0@dev"
     },
     "require-dev": {
