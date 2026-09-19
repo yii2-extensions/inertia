@@ -8,13 +8,13 @@ use DateTimeImmutable;
 use PHPForge\Inertia\Clock\Clock;
 use PHPForge\Inertia\Event\ProtocolResultCreated;
 use PHPForge\Inertia\Exception\InvalidPageInputException;
-use PHPForge\Inertia\Result\PageResult;
 use PHPForge\Inertia\{Page, Protocol, ResolvedPageObserver};
+use PHPForge\Inertia\Result\PageResult;
 use RuntimeException;
 use Yii;
 use yii\base\InvalidConfigException;
-use yii\inertia\tests\support\RecordingDispatcher;
 use yii\inertia\{Inertia, Manager};
+use yii\inertia\tests\support\RecordingDispatcher;
 use yii\web\{Request, Response};
 
 /**

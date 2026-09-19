@@ -232,16 +232,6 @@ final class InertiaTest extends TestCase
         );
     }
 
-    public function testThrowInvalidPropExceptionForEmptyScrollMetadataPageName(): void
-    {
-        $this->expectException(InvalidPropException::class);
-        $this->expectExceptionMessage(
-            CoreMessage::SCROLL_PAGE_NAME_INVALID->getMessage(),
-        );
-
-        Inertia::scrollMetadata('');
-    }
-
     public function testRenderReturnsHtmlForStandardRequests(): void
     {
         $this->setAbsoluteUrl('/dashboard');
@@ -306,5 +296,15 @@ final class InertiaTest extends TestCase
             Inertia::getShared('app.name'),
             'With single key should store the value.',
         );
+    }
+
+    public function testThrowInvalidPropExceptionForEmptyScrollMetadataPageName(): void
+    {
+        $this->expectException(InvalidPropException::class);
+        $this->expectExceptionMessage(
+            CoreMessage::SCROLL_PAGE_NAME_INVALID->getMessage(),
+        );
+
+        Inertia::scrollMetadata('');
     }
 }
