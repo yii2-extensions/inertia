@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace yii\inertia;
 
 use Closure;
+use PHPForge\Inertia\Exception\InvalidPropException;
 use PHPForge\Inertia\Prop\{
     AlwaysProp,
     DeferredProp,
@@ -178,6 +179,27 @@ final class Inertia
         string $wrapper = 'data',
     ): ScrollProp {
         return Prop::scroll($value, $metadata, $wrapper);
+    }
+
+    /**
+     * Creates the pagination metadata of a scroll prop.
+     *
+     * @param string $pageName Query parameter carrying the page cursor.
+     * @param int|string|null $previousPage Cursor of the previous page, or `null` on the first page.
+     * @param int|string|null $nextPage Cursor of the next page, or `null` on the last page.
+     * @param int|string|null $currentPage Cursor of the current page, or `null` when unknown.
+     *
+     * @throws InvalidPropException when `$pageName` is empty or contains control characters.
+     *
+     * @return ScrollMetadata Metadata instance accepted by {@see scroll()}.
+     */
+    public static function scrollMetadata(
+        string $pageName,
+        int|string|null $previousPage = null,
+        int|string|null $nextPage = null,
+        int|string|null $currentPage = null,
+    ): ScrollMetadata {
+        return new ScrollMetadata($pageName, $previousPage, $nextPage, $currentPage);
     }
 
     /**

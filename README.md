@@ -36,10 +36,8 @@ The packages have deliberately separate responsibilities:
 - [`php-forge/inertia`](https://github.com/php-forge/inertia) implements the framework-agnostic protocol, page model,
   prop resolution, headers, redirects, and result objects.
 - `yii2-extensions/inertia` adapts Yii2 application state to that core and maps its results back to Yii responses.
-- [`php-forge/vite`](https://github.com/php-forge/vite) provides optional, framework-agnostic Vite manifest and development
-  server support.
 
-This adapter does not contain Vite integration or framework-specific JavaScript client packages.
+This adapter ships no asset tooling and no framework-specific JavaScript client packages.
 
 ## Installation
 
@@ -136,8 +134,9 @@ return Inertia::render(
 );
 ```
 
-The facade also provides `deepMerge()` and `scroll()`. See the
-[`php-forge/inertia` documentation](https://github.com/php-forge/inertia) for protocol and prop semantics.
+The facade also provides `deepMerge()`, `scroll()`, and `scrollMetadata()`, so a controller builds every prop kind
+without naming a core class. See the [`php-forge/inertia` documentation](https://github.com/php-forge/inertia) for
+protocol and prop semantics.
 
 ## Validation and flash messages
 
@@ -176,11 +175,6 @@ Observer failures propagate to the caller; the observer does not mutate pages or
 Set `Manager::$pageObserver` to a portable observer. Both initial and Inertia responses notify it after page resolution;
 version conflicts do not. The default is `null`, preserving existing applications. This integration requires the core
 0.3 development line.
-
-## Vite
-
-Install and configure [`php-forge/vite`](https://github.com/php-forge/vite) when the application uses Vite. Asset
-discovery and development-server behavior are intentionally independent of this Yii2 adapter.
 
 ## Documentation
 

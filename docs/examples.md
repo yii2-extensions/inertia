@@ -120,10 +120,35 @@ return Inertia::render(
 );
 ```
 
+## Scroll props
+
+Scroll props carry one page of an infinite list plus the cursors of the adjacent pages:
+
+```php
+return Inertia::render(
+    'Feed/Index',
+    [
+        'feed' => Inertia::scroll(
+            ['data' => $rows, 'page' => $page],
+            Inertia::scrollMetadata(
+                pageName: 'page',
+                previousPage: $page > 1 ? $page - 1 : null,
+                nextPage: $page < $pages ? $page + 1 : null,
+                currentPage: $page,
+            ),
+        ),
+    ],
+);
+```
+
+The third `scroll()` argument names the merge path inside the value; it defaults to `data`.
+
 ## Core prop API
 
-The facade returns `PHPForge\Inertia\Prop` objects. Advanced operations, including scroll props and merge metadata,
-therefore follow the [`php-forge/inertia` API](https://github.com/php-forge/inertia).
+Every prop factory returns a `PHPForge\Inertia\Prop` object, so the fluent modifiers documented for the
+[`php-forge/inertia` API](https://github.com/php-forge/inertia) apply. `scrollMetadata()` is the exception: it returns
+the immutable `ScrollMetadata` value that `scroll()` consumes. An application only needs to require that package
+itself when its own code type-hints those objects.
 
 Prop callbacks take no framework argument. Capture application state explicitly or read it from `Yii::$app` inside
 the closure.

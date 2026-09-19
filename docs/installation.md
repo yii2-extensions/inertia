@@ -46,17 +46,6 @@ npm install @inertiajs/vue3 vue
 
 The PHP adapter does not select or bootstrap a JavaScript framework.
 
-## Add Vite when required
-
-Install [`php-forge/vite`](https://github.com/php-forge/vite) separately when the application needs a Vite manifest or
-development-server integration:
-
-```bash
-composer require php-forge/vite:^0.3
-```
-
-This dependency is optional because the Inertia protocol does not require Vite.
-
 ---
 
 [← Back to documentation](../README.md#documentation)

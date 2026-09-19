@@ -74,10 +74,16 @@ Boolean page options passed directly to the protocol core. Each option defaults 
 
 Controls whether the core includes shared-prop metadata in the page. The default is `true`.
 
+### `eventDispatcher`
+
+Optional PSR-14 dispatcher the default protocol emits `PHPForge\Inertia\Event\ProtocolResultCreated` through. The
+`yii2-extensions/debug` module assigns its Inertia collector automatically; leave the option unset otherwise.
+
 ### `protocol`
 
 Optional `PHPForge\Inertia\Protocol` instance. Applications normally use the default instance; injection is useful
-when a custom core clock is required for deterministic tests.
+when a custom core clock is required for deterministic tests. A configured instance keeps its own dispatcher, so
+`eventDispatcher` is ignored.
 
 ## Root view
 

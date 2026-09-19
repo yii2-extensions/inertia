@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace yii\inertia\tests;
 
-use PHPForge\Inertia\Prop\ScrollMetadata;
+use PHPForge\Inertia\Exception\{InvalidPropException, Message as CoreMessage};
+use PHPUnit\Framework\Attributes\TestWith;
 use stdClass;
 use Yii;
 use yii\base\InvalidConfigException;
@@ -217,8 +218,18 @@ final class InertiaTest extends TestCase
         );
         self::assertSame(
             'records',
-            Inertia::scroll([], new ScrollMetadata('page', null, null, 1), 'records')->wrapper(),
+            Inertia::scroll([], Inertia::scrollMetadata('page', currentPage: 1), 'records')->wrapper(),
             'Should retain the core wrapper.',
+        );
+        self::assertSame(
+            ['pageName' => 'page', 'previousPage' => 1, 'nextPage' => 3, 'currentPage' => 2, 'reset' => false],
+            Inertia::scrollMetadata('page', 1, 3, 2)->toArray(),
+            'Cursors must keep their parameter order.',
+        );
+        self::assertSame(
+            ['pageName' => 'feed', 'previousPage' => null, 'nextPage' => null, 'currentPage' => null, 'reset' => false],
+            Inertia::scrollMetadata('feed')->toArray(),
+            'Cursors must default to `null`.',
         );
     }
 
@@ -286,5 +297,17 @@ final class InertiaTest extends TestCase
             Inertia::getShared('app.name'),
             'With single key should store the value.',
         );
+    }
+
+    #[TestWith([''])]
+    #[TestWith(["feed\npage"])]
+    public function testThrowInvalidPropExceptionForInvalidScrollMetadataPageName(string $pageName): void
+    {
+        $this->expectException(InvalidPropException::class);
+        $this->expectExceptionMessage(
+            CoreMessage::SCROLL_PAGE_NAME_INVALID->getMessage(),
+        );
+
+        Inertia::scrollMetadata($pageName);
     }
 }
