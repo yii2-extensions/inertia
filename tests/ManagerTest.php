@@ -6,11 +6,14 @@ namespace yii\inertia\tests;
 
 use DateTimeImmutable;
 use PHPForge\Inertia\Clock\Clock;
+use PHPForge\Inertia\Event\ProtocolResultCreated;
 use PHPForge\Inertia\Exception\InvalidPageInputException;
+use PHPForge\Inertia\Result\PageResult;
 use PHPForge\Inertia\{Page, Protocol, ResolvedPageObserver};
 use RuntimeException;
 use Yii;
 use yii\base\InvalidConfigException;
+use yii\inertia\tests\support\RecordingDispatcher;
 use yii\inertia\{Inertia, Manager};
 use yii\web\{Request, Response};
 
@@ -86,6 +89,68 @@ final class ManagerTest extends TestCase
                 'A rejected flash should remain available for the next request.',
             );
         }
+    }
+
+    public function testConfiguredProtocolIgnoresEventDispatcher(): void
+    {
+        $this->prepareInertiaRequest();
+
+        $this->setAbsoluteUrl('/settings');
+
+        $dispatcher = new RecordingDispatcher();
+
+        $manager = $this->manager();
+
+        $manager->protocol = Protocol::create();
+
+        $manager->eventDispatcher = $dispatcher;
+
+        $manager->render('Settings');
+
+        self::assertSame(
+            [],
+            $dispatcher->events,
+            'A configured protocol must keep its own dispatcher.',
+        );
+    }
+
+    public function testDefaultProtocolEmitsResultsThroughEventDispatcher(): void
+    {
+        $this->prepareInertiaRequest();
+
+        $this->setAbsoluteUrl('/settings');
+
+        $dispatcher = new RecordingDispatcher();
+
+        $manager = $this->manager();
+
+        $manager->eventDispatcher = $dispatcher;
+
+        $manager->render('Settings', ['settings' => ['theme' => 'dark']]);
+
+        self::assertCount(
+            1,
+            $dispatcher->events,
+            'One event per render.',
+        );
+
+        $event = $dispatcher->events[0];
+
+        self::assertInstanceOf(
+            ProtocolResultCreated::class,
+            $event,
+            'Event must be the protocol result.',
+        );
+        self::assertInstanceOf(
+            PageResult::class,
+            $event->result,
+            'Result must be the rendered page.',
+        );
+        self::assertSame(
+            '/settings',
+            $event->request->url,
+            'Event must carry the request context.',
+        );
     }
 
     public function testFailedRenderDoesNotConsumeFlashes(): void

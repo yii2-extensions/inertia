@@ -8,6 +8,7 @@ use Closure;
 use PHPForge\Inertia\{Exception\InvalidRequestContextException, PageInput, Protocol, RequestContext};
 use PHPForge\Inertia\{Header, ResolvedPageObserver};
 use PHPForge\Inertia\Result\{InertiaPageResult, InitialPageResult, PageResult, ProtocolResult};
+use Psr\EventDispatcher\EventDispatcherInterface;
 use ReflectionFunction;
 use Yii;
 use yii\base\{Component, InvalidConfigException};
@@ -41,6 +42,12 @@ final class Manager extends Component
      */
     public string $errorFlashKey = 'errors';
     /**
+     * PSR-14 dispatcher the default protocol emits `ProtocolResultCreated` through, or `null` to emit no events.
+     *
+     * Ignored when {@see $protocol} is configured. A debugger registers its collector here.
+     */
+    public EventDispatcherInterface|null $eventDispatcher = null;
+    /**
      * Whether rendered pages expose shared-prop metadata.
      */
     public bool $exposeSharedProps = true;
@@ -57,7 +64,9 @@ final class Manager extends Component
      */
     public bool $preserveFragment = false;
     /**
-     * Protocol service. Configure this property to inject a custom core clock for deterministic tests.
+     * Protocol service, or `null` to build the default one with {@see $eventDispatcher}.
+     *
+     * Configure this property to inject a custom core clock for deterministic tests.
      */
     public Protocol|null $protocol = null;
     /**
@@ -329,7 +338,7 @@ final class Manager extends Component
      */
     private function getProtocol(): Protocol
     {
-        return $this->protocol ??= Protocol::create();
+        return $this->protocol ??= Protocol::create(eventDispatcher: $this->eventDispatcher);
     }
 
     /**

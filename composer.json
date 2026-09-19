@@ -26,6 +26,7 @@
     "require": {
         "php": ">=8.3",
         "php-forge/inertia": "^0.5",
+        "psr/event-dispatcher": "^1.0",
         "yiisoft/yii2": "^22.0@dev"
     },
     "require-dev": {
