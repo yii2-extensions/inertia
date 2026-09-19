@@ -9,7 +9,7 @@
 ## Install the Yii2 adapter
 
 ```bash
-composer require yii2-extensions/inertia:^0.5
+composer require yii2-extensions/inertia:^0.6
 ```
 
 The adapter requires [`php-forge/inertia`](https://github.com/php-forge/inertia), so Composer installs the

@@ -42,7 +42,7 @@ This adapter ships no asset tooling and no framework-specific JavaScript client 
 ## Installation
 
 ```bash
-composer require yii2-extensions/inertia:^0.5
+composer require yii2-extensions/inertia:^0.6
 ```
 
 Register its bootstrap class:
