@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace yii\inertia\tests;
 
 use PHPForge\Inertia\Exception\{InvalidPropException, Message as CoreMessage};
+use PHPUnit\Framework\Attributes\TestWith;
 use stdClass;
 use Yii;
 use yii\base\InvalidConfigException;
@@ -298,13 +299,15 @@ final class InertiaTest extends TestCase
         );
     }
 
-    public function testThrowInvalidPropExceptionForEmptyScrollMetadataPageName(): void
+    #[TestWith([''])]
+    #[TestWith(["feed\npage"])]
+    public function testThrowInvalidPropExceptionForInvalidScrollMetadataPageName(string $pageName): void
     {
         $this->expectException(InvalidPropException::class);
         $this->expectExceptionMessage(
             CoreMessage::SCROLL_PAGE_NAME_INVALID->getMessage(),
         );
 
-        Inertia::scrollMetadata('');
+        Inertia::scrollMetadata($pageName);
     }
 }

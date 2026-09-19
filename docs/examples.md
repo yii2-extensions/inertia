@@ -145,9 +145,10 @@ The third `scroll()` argument names the merge path inside the value; it defaults
 
 ## Core prop API
 
-Every factory returns a `PHPForge\Inertia\Prop` object, so the fluent modifiers documented for the
-[`php-forge/inertia` API](https://github.com/php-forge/inertia) apply. An application only needs to require that
-package itself when its own code type-hints those objects.
+Every prop factory returns a `PHPForge\Inertia\Prop` object, so the fluent modifiers documented for the
+[`php-forge/inertia` API](https://github.com/php-forge/inertia) apply. `scrollMetadata()` is the exception: it returns
+the immutable `ScrollMetadata` value that `scroll()` consumes. An application only needs to require that package
+itself when its own code type-hints those objects.
 
 Prop callbacks take no framework argument. Capture application state explicitly or read it from `Yii::$app` inside
 the closure.

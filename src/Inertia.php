@@ -189,7 +189,7 @@ final class Inertia
      * @param int|string|null $nextPage Cursor of the next page, or `null` on the last page.
      * @param int|string|null $currentPage Cursor of the current page, or `null` when unknown.
      *
-     * @throws InvalidPropException When `$pageName` is empty or contains control characters.
+     * @throws InvalidPropException when `$pageName` is empty or contains control characters.
      *
      * @return ScrollMetadata Metadata instance accepted by {@see scroll()}.
      */

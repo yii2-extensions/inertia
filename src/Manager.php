@@ -280,7 +280,7 @@ final class Manager extends Component
      *
      * @param Request $request Yii request to adapt.
      *
-     * @throws InvalidRequestContextException If Yii supplies invalid request data.
+     * @throws InvalidRequestContextException if Yii supplies invalid request data.
      *
      * @return RequestContext Validated request data consumed by the protocol core.
      */
@@ -439,7 +439,7 @@ final class Manager extends Component
     /**
      * Reads session flashes without consuming them and separates validation errors from other flash data.
      *
-     * @throws InvalidConfigException If flash keys or validation errors have an unsupported structure.
+     * @throws InvalidConfigException if flash keys or validation errors have an unsupported structure.
      *
      * @return array{array<string, list<string>|string>, array<string, mixed>} Validation errors and remaining flashes.
      */
@@ -477,7 +477,7 @@ final class Manager extends Component
      *
      * @param mixed $value Error flash value to validate.
      *
-     * @throws InvalidConfigException If the error value does not contain supported validation messages.
+     * @throws InvalidConfigException if the error value does not contain supported validation messages.
      *
      * @return array<string, list<string>|string> Validation messages indexed by field name.
      */
