@@ -1,6 +1,9 @@
 # AI agents (if present)
 .codex
-.claude
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/yii2-inertia-integration
 
 # codecoverage (if present)
 code_coverage
@@ -56,3 +59,6 @@ Thumbs.db
 .buildpath
 .project
 .settings
+
+# Private maintainer files
+/internal/

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace yii\inertia\tests;
 
 use DateTimeImmutable;
+use DOMDocument;
 use PHPForge\Inertia\Clock\Clock;
 use PHPForge\Inertia\Event\ProtocolResultCreated;
-use PHPForge\Inertia\Exception\InvalidPageInputException;
+use PHPForge\Inertia\Exception\{InvalidPageInputException, PropResolutionException};
 use PHPForge\Inertia\{Page, Protocol, ResolvedPageObserver};
 use PHPForge\Inertia\Result\PageResult;
 use RuntimeException;
@@ -15,7 +16,7 @@ use Yii;
 use yii\base\InvalidConfigException;
 use yii\inertia\{Inertia, Manager};
 use yii\inertia\tests\support\RecordingDispatcher;
-use yii\web\{Request, Response};
+use yii\web\{Request, Response, Session};
 
 /**
  * Integration tests for {@see Manager} as the Yii2 adapter for the protocol core.
@@ -369,6 +370,90 @@ final class ManagerTest extends TestCase
         );
     }
 
+    public function testNewProtocolResultReplacesPreviousControlHeaders(): void
+    {
+        $this->prepareInertiaRequest();
+
+        $manager = $this->manager();
+
+        $manager->version = 'new';
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Version', 'old');
+
+        $response = $manager->render('Dashboard');
+
+        self::assertSame(
+            409,
+            $response->statusCode,
+            'The first result must be a version conflict.',
+        );
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Version', 'new');
+
+        $response = $manager->render('Dashboard');
+
+        self::assertFalse(
+            $response->getHeaders()->has('X-Inertia-Location'),
+            'A page must clear the previous reload target.',
+        );
+        self::assertFalse(
+            $response->getHeaders()->has('X-Inertia-Version'),
+            'A page must clear the conflict version header.',
+        );
+        self::assertSame(
+            'true',
+            $response->getHeaders()->get('X-Inertia'),
+            'A resolved visit must carry the page marker.',
+        );
+
+        $response = $manager->location('https://example.test/login');
+
+        self::assertFalse(
+            $response->getHeaders()->has('X-Inertia'),
+            'A location response must clear the page marker.',
+        );
+        self::assertSame(
+            'https://example.test/login',
+            $response->getHeaders()->get('X-Inertia-Location'),
+            'The new location result must supply its own target.',
+        );
+    }
+
+    public function testNormalizedInertiaMarkerMatchesCoreResponseAndRedirects(): void
+    {
+        $this->prepareInertiaRequest('PATCH');
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia', ' TRUE ');
+
+        $manager = $this->manager();
+
+        self::assertTrue(
+            $manager->isInertiaRequest(),
+            'Marker detection must agree with the core normalization.',
+        );
+
+        $response = $manager->render('Dashboard');
+
+        self::assertSame(
+            Response::FORMAT_JSON,
+            $response->format,
+            'The normalized marker must produce an Inertia page.',
+        );
+
+        $response->redirect('/dashboard');
+        $manager->normalizeResponse($response);
+
+        self::assertSame(
+            303,
+            $response->statusCode,
+            'A normalized Inertia marker must also normalize write redirects.',
+        );
+        self::assertFalse(
+            $response->getHeaders()->has('X-Inertia'),
+            'A redirect must not retain a page response marker.',
+        );
+    }
+
     public function testNormalizeResponseLeavesStandardResponseUntouched(): void
     {
         $response = new Response();
@@ -630,6 +715,22 @@ final class ManagerTest extends TestCase
         );
     }
 
+    public function testRenderMergesAllVaryHeaderLines(): void
+    {
+        $headers = Yii::$app->getResponse()->getHeaders();
+
+        $headers->set('Vary', 'Accept-Encoding');
+        $headers->add('Vary', 'Accept-Language, x-inertia');
+
+        $response = $this->manager()->render('Dashboard');
+
+        self::assertSame(
+            'Accept-Encoding, Accept-Language, x-inertia',
+            $response->getHeaders()->get('Vary'),
+            'Every Vary line must survive without duplicate protocol tokens.',
+        );
+    }
+
     public function testRenderMergesVaryHeader(): void
     {
         $this->setAbsoluteUrl('/dashboard');
@@ -692,6 +793,17 @@ final class ManagerTest extends TestCase
         );
     }
 
+    public function testRenderPreservesVaryWildcard(): void
+    {
+        Yii::$app->getResponse()->getHeaders()->set('Vary', '*');
+
+        self::assertSame(
+            '*',
+            $this->manager()->render('Dashboard')->getHeaders()->get('Vary'),
+            'A Vary wildcard must remain valid without extra field names.',
+        );
+    }
+
     public function testRenderWithoutSessionUsesEmptyErrors(): void
     {
         $this->destroyApplication();
@@ -716,6 +828,58 @@ final class ManagerTest extends TestCase
             'flash',
             $page,
             'Empty flash data should be omitted.',
+        );
+    }
+
+    public function testRootViewIdentifiesPageJsonForClient(): void
+    {
+        $manager = $this->manager();
+
+        $manager->id = 'portal"&';
+        $value = '</script><script>alert("prop")</script>';
+
+        $response = $manager->render('Dashboard', ['value' => $value]);
+        $document = new DOMDocument();
+
+        self::assertIsString(
+            $response->content,
+            'The initial response must contain HTML.',
+        );
+        self::assertNotSame(
+            '',
+            $response->content,
+            'The initial response must contain HTML.',
+        );
+
+        $document->loadHTML($response->content);
+        $scripts = $document->getElementsByTagName('script');
+
+        self::assertCount(
+            1,
+            $scripts,
+            'Prop content must not create extra script elements.',
+        );
+
+        $script = $scripts->item(0);
+
+        self::assertNotNull(
+            $script,
+            'The initial page must contain its JSON script.',
+        );
+        self::assertSame(
+            'application/json',
+            $script->getAttribute('type'),
+            'Page data must remain inert JSON.',
+        );
+        self::assertSame(
+            $manager->id,
+            $script->getAttribute('data-page'),
+            'The client must find data for its root ID.',
+        );
+        self::assertSame(
+            $value,
+            $this->extractPage($response)['props']['value'] ?? null,
+            'Safe embedding must preserve prop data.',
         );
     }
 
@@ -807,6 +971,43 @@ final class ManagerTest extends TestCase
             ['auth' => ['user' => ['name' => 'Jane']]],
             $manager->getShared(),
             'A nested shared prop should replace a scalar intermediate value.',
+        );
+    }
+
+    public function testThrowPropResolutionExceptionWhenPropFailsWithoutExpiringFlashes(): void
+    {
+        $session = Yii::$app->getSession();
+
+        $session->setFlash('notice', 'Retry the page.');
+
+        try {
+            $this->manager()->render(
+                'Dashboard',
+                [
+                    'broken' => static fn(): never => throw new RuntimeException('prop failed'),
+                ],
+            );
+
+            self::fail(
+                'A failed prop must propagate its exception.',
+            );
+        } catch (PropResolutionException $exception) {
+            self::assertSame(
+                'prop failed',
+                $exception->getPrevious()?->getMessage(),
+                'The prop failure must remain the cause.',
+            );
+        }
+
+        $session->close();
+        Yii::$app->set('session', ['class' => Session::class]);
+
+        $page = $this->extractPage($this->manager()->render('Dashboard'));
+
+        self::assertSame(
+            ['notice' => 'Retry the page.'],
+            $page['flash'] ?? null,
+            'A failed prop must leave flashes available to the next request.',
         );
     }
 
@@ -927,6 +1128,50 @@ final class ManagerTest extends TestCase
             ['notice' => 'Keep me.'],
             Yii::$app->getSession()->getAllFlashes(false),
             'Version conflicts should preserve session flashes.',
+        );
+    }
+
+    public function testVersionConflictPreservesFlashesForNextRequest(): void
+    {
+        $this->prepareInertiaRequest();
+
+        Yii::$app->getRequest()->getHeaders()->set('X-Inertia-Version', 'old');
+
+        $session = Yii::$app->getSession();
+        $session->setFlash('errors', ['email' => ['Invalid email.']]);
+        $session->setFlash('notice', 'Keep across the asset reload.', false);
+        $manager = $this->manager();
+
+        $manager->version = 'new';
+
+        self::assertSame(
+            409,
+            $manager->render('Dashboard')->statusCode,
+            'An outdated GET must request an asset reload.',
+        );
+
+        $session->close();
+
+        Yii::$app->set('session', ['class' => Session::class]);
+        Yii::$app->getRequest()->getHeaders()->remove('X-Inertia');
+        Yii::$app->getResponse()->clear();
+
+        $page = $this->extractPage($manager->render('Dashboard'));
+
+        self::assertSame(
+            ['email' => ['Invalid email.']],
+            $page['props']['errors'] ?? null,
+            'Validation errors must reach the HTML reload after a version conflict.',
+        );
+        self::assertSame(
+            ['notice' => 'Keep across the asset reload.'],
+            $page['flash'] ?? null,
+            'Timed flashes must reach the request after a version conflict.',
+        );
+        self::assertSame(
+            [],
+            Yii::$app->getSession()->getAllFlashes(false),
+            'A successful reload must consume flashes.',
         );
     }
 

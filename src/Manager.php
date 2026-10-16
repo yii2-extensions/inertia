@@ -134,7 +134,7 @@ final class Manager extends Component
     {
         $value = ($request ?? Yii::$app->getRequest())->getHeaders()->get(Header::INERTIA->value);
 
-        return is_string($value) && in_array($value, ['true', '1'], true);
+        return is_string($value) && in_array(strtolower(trim($value)), ['true', '1'], true);
     }
 
     /**
@@ -369,6 +369,12 @@ final class Manager extends Component
         Response $response,
         array $viewData = [],
     ): Response {
+        $headers = $response->getHeaders();
+
+        foreach ([Header::INERTIA, Header::LOCATION, Header::REDIRECT, Header::VERSION] as $header) {
+            $headers->remove($header->value);
+        }
+
         $response->setStatusCode($result->statusCode());
 
         $this->applyHeaders($response, $result->headers());
@@ -414,14 +420,10 @@ final class Manager extends Component
      */
     private function mergeVaryHeader(Response $response, string $value): void
     {
-        $existing = $response->getHeaders()->get('Vary');
+        $existing = $response->getHeaders()->get('Vary', [], false);
         $values = [];
 
-        foreach ([$existing, $value] as $header) {
-            if (!is_string($header)) {
-                continue;
-            }
-
+        foreach ([...$existing, $value] as $header) {
             foreach (explode(',', $header) as $token) {
                 $token = trim($token);
 
@@ -432,7 +434,7 @@ final class Manager extends Component
         }
 
         if ($values !== []) {
-            $response->getHeaders()->set('Vary', implode(', ', $values));
+            $response->getHeaders()->set('Vary', isset($values['*']) ? '*' : implode(', ', $values));
         }
     }
 
@@ -450,8 +452,15 @@ final class Manager extends Component
         }
 
         $flashes = [];
+        $session = Yii::$app->getSession();
+        $pending = $session->getAllFlashes();
 
-        foreach (Yii::$app->getSession()->getAllFlashes(false) as $key => $value) {
+        // Yii marks read flashes for expiry on the next request; retain them until a page succeeds.
+        foreach ($pending as $key => $value) {
+            $session->setFlash((string) $key, $value);
+        }
+
+        foreach ($pending as $key => $value) {
             if (!is_string($key)) {
                 throw new InvalidConfigException(
                     Message::SESSION_FLASH_KEY_INVALID->getMessage(),

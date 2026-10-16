@@ -16,6 +16,8 @@ use yii\web\{Application as WebApplication, Response};
 final class Bootstrap implements BootstrapInterface
 {
     /**
+     * Registers the adapter and attaches response normalization for Inertia web requests.
+     *
      * @param Application $app
      */
     public function bootstrap($app): void

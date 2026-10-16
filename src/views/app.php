@@ -25,7 +25,7 @@ $this->beginPage();
     <body>
     <?php $this->beginBody(); ?>
         <div id="<?= Html::encode($id) ?>">
-            <script type="application/json"><?= $pageJson ?></script>
+            <script type="application/json" data-page="<?= Html::encode($id) ?>"><?= $pageJson ?></script>
         </div>
     <?php $this->endBody(); ?>
     </body>

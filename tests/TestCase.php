@@ -26,7 +26,7 @@ use function preg_match;
  */
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
-    private const string PAGE_JSON_PATTERN = '/<script type="application\/json">(.*?)<\/script>/s';
+    private const string PAGE_JSON_PATTERN = '/<script type="application\/json"(?: data-page="[^"]*")?>(.*?)<\/script>/s';
 
     public static function tearDownAfterClass(): void
     {
