@@ -15,14 +15,19 @@ Installing this skill does not install the adapter, select a JavaScript framewor
 
 ## Consult the relevant guide
 
-Prefer supplied local Markdown or `docs/` in the matching package checkout. During development, inspect the current
-local files, including uncommitted changes; do not attribute those changes to `HEAD`. A Composer archive may omit
-guides; a copied skill need not have a sibling documentation tree. If local guides are unavailable, obtain the
-installed adapter's version and `source.reference` from the configured vendor directory's `composer/installed.json`.
-This installed metadata takes precedence over `composer.lock`, which describes the intended resolution and may
-differ. Read `docs/` at that tag or source SHA in the
-[package repository](https://github.com/yii2-extensions/inertia), resolving the revision from Composer each time
-instead of defaulting to `main` or hard-coding a SHA in this skill. Read only the needed page:
+In a root package checkout, use `composer show --self --format=json` for metadata. For installed dependencies,
+resolve the real path and read the configured vendor directory's `composer/installed.php` (`versions[<package>]`):
+`install_path`, `pretty_version` and Composer's selected `reference`. Do not blindly prefer `source.reference`
+over `dist.reference`. For any live package checkout, including a symlinked path install, inspect its current
+`HEAD` and files even when clean; report metadata mismatches and let the actual files govern. Uncommitted changes
+have no matching SHA. Otherwise use the selected reference or a verified matching tag only after establishing
+its source provenance. Compare `composer.lock`; it may differ from the inspected installation. Identify a
+lock-only state when no package files are installed, and resolve dependencies separately. Use hosted pages,
+catalogs or snapshots only when their source revision matches.
+
+Prefer matching supplied Markdown or package `docs/`. A Composer archive may omit guides; a copied skill need
+not have a sibling documentation tree. If local guides are unavailable, read the needed files at the resolved
+reference in the [package repository](https://github.com/yii2-extensions/inertia):
 
 - `installation.md`: dependencies, development-line resolution, bootstrap, and client prerequisites.
 - `configuration.md`: manager defaults, root view encoding, flashes, CSRF, and observer/dispatcher contracts.
