@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace yii\inertia\tests;
 
+use PHPUnit\Framework\Attributes\TestWith;
 use stdClass;
 use Yii;
 use yii\base\Event;
@@ -160,9 +161,12 @@ final class BootstrapTest extends TestCase
         );
     }
 
-    public function testBeforeSendNormalizesMutationRedirect(): void
+    #[TestWith(['PUT'], 'PUT redirect')]
+    #[TestWith(['PATCH'], 'PATCH redirect')]
+    #[TestWith(['DELETE'], 'DELETE redirect')]
+    public function testBeforeSendNormalizesMutationRedirect(string $method): void
     {
-        $this->prepareBootstrappedInertiaRequest('PUT');
+        $this->prepareBootstrappedInertiaRequest($method);
         $this->setAbsoluteUrl('/posts');
 
         $response = Yii::$app->getResponse()->redirect('/target');
@@ -172,7 +176,7 @@ final class BootstrapTest extends TestCase
         self::assertSame(
             303,
             $response->statusCode,
-            "A '302' redirect after an Inertia PUT should become '303'.",
+            "A '302' redirect after an Inertia {$method} should become '303'.",
         );
         self::assertSame(
             'https://example.test/target',

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.6.1 Under development
 
+- fix: improve Yii `22.0` docs and release hygiene; fix Inertia `v3` responses, flash/header handling, and redirects; test public examples.
+
 ## 0.6.0 September 19, 2026
 
 - feat: add `Inertia::scrollMetadata()` and `Manager::$eventDispatcher`, the PSR-14 dispatcher of the default protocol.
@@ -41,13 +43,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: update `README.md` to reference correct Yii2 framework repository.
 - docs: update installation instructions and correct Yii2 capitalization in `README.md`.
 - fix: update `composer.json` to require the correct Yii2 framework package.
-- refactor: move `flash` and `errors` injection into `resolveProps()` and fix `consumeFlashes()` session initialization so flash data reaches Vue components reliably.
+- refactor: inject `flash` and `errors` in `resolveProps()` and initialize sessions in `consumeFlashes()` so Vue reliably receives flash data.
 - feat: add Inertia `v3` protocol support with prop wrappers, new page object fields, and partial-reload header handling.
 - feat: add `web\Request` with `cookie-to-header` CSRF protection compatible with Inertia's built-in HTTP client.
 - fix: mask raw token in `web\Request::getCsrfTokenFromHeader()` so `validateCsrfToken()` comparison succeeds.
 - docs: document `web\Request` cookie-to-header CSRF protection in `README.md`, `configuration.md`, and `examples.md`.
-- feat: add `Vite` component for manifest parsing, dev-server tag rendering, and module preload; framework adapters inject preamble scripts via `preambleProvider` closure.
+- feat: add `Vite` for manifest parsing, dev-server tags, and module preload; adapters inject preamble scripts via `preambleProvider`.
 - chore: rename package and documentation references from `yii2-framework` to `yii2-extensions` after organization move.
 - docs: update PHP version requirement to `8.3` in installation docs and align related `README.md` links.
-- chore: update PHP version to `8.3` in `.styleci.yml`; enhance SVG features documentation for clarity and consistency and adjust logo source in `README.md`.
-- docs: document the `\yii\inertia\Vite` dev server / HMR behavior in `README.md`, with pointers to the React and Vue adapter packages for framework-specific setup.
+- chore: require PHP 8.3 in `.styleci.yml`, clarify SVG feature docs, and update the logo source in `README.md`.
+- docs: describe `\yii\inertia\Vite` dev-server/HMR behavior and link React/Vue adapter setup in `README.md`.

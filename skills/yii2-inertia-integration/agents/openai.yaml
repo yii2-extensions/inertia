@@ -1,0 +1,4 @@
+interface:
+  display_name: "Yii Inertia integration"
+  short_description: "Configure and verify the Yii 22 Inertia adapter"
+  default_prompt: "Use $yii2-inertia-integration to configure and verify Inertia in this Yii 22 application."

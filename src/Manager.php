@@ -134,7 +134,7 @@ final class Manager extends Component
     {
         $value = ($request ?? Yii::$app->getRequest())->getHeaders()->get(Header::INERTIA->value);
 
-        return is_string($value) && in_array($value, ['true', '1'], true);
+        return is_string($value) && in_array(strtolower(trim($value)), ['true', '1'], true);
     }
 
     /**
@@ -203,7 +203,7 @@ final class Manager extends Component
     {
         $request = Yii::$app->getRequest();
 
-        [$errors, $flash] = $this->readFlashes();
+        [$errors, $flash, $pending] = $this->readFlashes();
 
         $input = PageInput::create($component, $props, $this->getVersion())
             ->withSharedProps($this->shared)
@@ -213,6 +213,11 @@ final class Manager extends Component
             ->withClearHistory($this->clearHistory)
             ->withPreserveFragment($this->preserveFragment)
             ->withSharedPropsExposure($this->exposeSharedProps);
+
+        // Retain validated flashes across protocol or callback failures until a page succeeds.
+        foreach ($pending as $key => $value) {
+            Yii::$app->getSession()->setFlash($key, $value);
+        }
 
         $result = $this->getProtocol()->page(
             $this->createRequestContext($request),
@@ -369,6 +374,12 @@ final class Manager extends Component
         Response $response,
         array $viewData = [],
     ): Response {
+        $headers = $response->getHeaders();
+
+        foreach ([Header::INERTIA, Header::LOCATION, Header::REDIRECT, Header::VERSION] as $header) {
+            $headers->remove($header->value);
+        }
+
         $response->setStatusCode($result->statusCode());
 
         $this->applyHeaders($response, $result->headers());
@@ -414,14 +425,10 @@ final class Manager extends Component
      */
     private function mergeVaryHeader(Response $response, string $value): void
     {
-        $existing = $response->getHeaders()->get('Vary');
+        $existing = $response->getHeaders()->get('Vary', [], false);
         $values = [];
 
-        foreach ([$existing, $value] as $header) {
-            if (!is_string($header)) {
-                continue;
-            }
-
+        foreach ([...$existing, $value] as $header) {
             foreach (explode(',', $header) as $token) {
                 $token = trim($token);
 
@@ -432,7 +439,7 @@ final class Manager extends Component
         }
 
         if ($values !== []) {
-            $response->getHeaders()->set('Vary', implode(', ', $values));
+            $response->getHeaders()->set('Vary', isset($values['*']) ? '*' : implode(', ', $values));
         }
     }
 
@@ -441,27 +448,32 @@ final class Manager extends Component
      *
      * @throws InvalidConfigException if flash keys or validation errors have an unsupported structure.
      *
-     * @return array{array<string, list<string>|string>, array<string, mixed>} Validation errors and remaining flashes.
+     * @return array{
+     *   array<string, list<string>|string>,
+     *   array<string, mixed>,
+     *   array<string, mixed>,
+     * } Validation errors, remaining flashes, and the complete flash snapshot.
      */
     private function readFlashes(): array
     {
         if (!Yii::$app->has('session')) {
-            return [[], []];
+            return [[], [], []];
         }
 
-        $flashes = [];
+        $pending = [];
 
-        foreach (Yii::$app->getSession()->getAllFlashes(false) as $key => $value) {
+        foreach (Yii::$app->getSession()->getAllFlashes() as $key => $value) {
             if (!is_string($key)) {
                 throw new InvalidConfigException(
                     Message::SESSION_FLASH_KEY_INVALID->getMessage(),
                 );
             }
 
-            $flashes[$key] = $value;
+            $pending[$key] = $value;
         }
 
         $errors = [];
+        $flashes = $pending;
 
         if (array_key_exists($this->errorFlashKey, $flashes)) {
             $errors = $this->validateErrors($flashes[$this->errorFlashKey]);
@@ -469,7 +481,7 @@ final class Manager extends Component
             unset($flashes[$this->errorFlashKey]);
         }
 
-        return [$errors, $flashes];
+        return [$errors, $flashes, $pending];
     }
 
     /**

@@ -30,7 +30,8 @@ final class InertiaTest extends TestCase
 
         Inertia::flushShared();
 
-        self::assertEmpty(
+        self::assertSame(
+            [],
             Inertia::getShared(),
             'All shared props should be removed after flush.',
         );

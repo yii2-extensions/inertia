@@ -31,157 +31,61 @@
 
 ## Architecture
 
-The packages have deliberately separate responsibilities:
-
-- [`php-forge/inertia`](https://github.com/php-forge/inertia) implements the framework-agnostic protocol, page model,
-  prop resolution, headers, redirects, and result objects.
-- `yii2-extensions/inertia` adapts Yii2 application state to that core and maps its results back to Yii responses.
-
-This adapter ships no asset tooling and no framework-specific JavaScript client packages.
+[`php-forge/inertia`](https://github.com/php-forge/inertia) owns the Inertia protocol, page model, prop resolution,
+headers, redirects, and result objects. This package connects that core to Yii requests, responses, views, and sessions.
+The application supplies its JavaScript client, component resolver, and asset build.
 
 ## Installation
 
+Yii 2.0.x is outside this package's declared support.
+
 ```bash
-composer require yii2-extensions/inertia:^0.6
+composer require "yii2-extensions/inertia:^0.6"
 ```
 
-Register its bootstrap class:
-
-```php
-return [
-    'bootstrap' => [\yii\inertia\Bootstrap::class],
-];
-```
-
-The adapter installs `php-forge/inertia` as its protocol dependency.
+See the [installation guide](docs/installation.md) for Yii development-line resolution, bootstrap registration,
+CSRF configuration, and frontend setup.
 
 ## Quick start
 
-```php
-use yii\inertia\Inertia;
-use yii\web\Controller;
-use yii\web\Response;
-
-final class SiteController extends Controller
-{
-    public function actionIndex(): Response
-    {
-        return Inertia::render(
-            'Dashboard',
-            ['stats' => ['visits' => 42]],
-        );
-    }
-}
-```
-
-The convenience controller exposes the same operation as `$this->inertia()`:
+Register the adapter in the existing web application configuration:
 
 ```php
-use yii\inertia\web\Controller;
-use yii\web\Response;
-
-final class SiteController extends Controller
-{
-    public function actionIndex(): Response
-    {
-        return $this->inertia('Dashboard', ['stats' => ['visits' => 42]]);
-    }
-}
+'bootstrap' => [\yii\inertia\Bootstrap::class],
 ```
 
-## Configuration
+Return a page from an existing controller action:
 
 ```php
-use yii\inertia\Manager;
-
-return [
-    'bootstrap' => [\yii\inertia\Bootstrap::class],
-    'components' => [
-        'inertia' => [
-            'class' => Manager::class,
-            'id' => 'app',
-            'rootView' => '@app/views/layouts/inertia.php',
-            'version' => static function (): string {
-                $path = dirname(__DIR__) . '/public/build/manifest.json';
-
-                return is_file($path) ? (string) filemtime($path) : '';
-            },
-            'shared' => [
-                'app.name' => static fn(): string => Yii::$app->name,
-            ],
-        ],
-    ],
-];
+return \yii\inertia\Inertia::render('Dashboard', ['stats' => ['visits' => 42]]);
 ```
 
-Version callbacks may accept the current `yii\web\Request`. Prop callbacks are framework-neutral zero-argument
-closures and are resolved by `php-forge/inertia`.
-
-## Prop factories
-
-The `yii\inertia\Inertia` facade delegates prop creation directly to the core:
-
-```php
-return Inertia::render(
-    'Dashboard',
-    [
-        'stats' => Inertia::always($stats),
-        'users' => Inertia::defer(static fn(): array => User::find()->asArray()->all()),
-        'activity' => Inertia::optional(static fn(): array => $activity),
-        'items' => Inertia::merge($items)->append('data', 'id'),
-        'countries' => Inertia::once(static fn(): array => $countries)->as('countries-v1'),
-    ],
-);
-```
-
-The facade also provides `deepMerge()`, `scroll()`, and `scrollMetadata()`, so a controller builds every prop kind
-without naming a core class. See the [`php-forge/inertia` documentation](https://github.com/php-forge/inertia) for
-protocol and prop semantics.
-
-## Validation and flash messages
-
-The adapter reads the session flash key configured by `Manager::$errorFlashKey` and passes it to the core as
-`props.errors`. Other flashes are emitted in the top-level `flash` page field. Flashes are consumed only after a page
-result is created, so version conflicts and failed page creation preserve them.
-
-```php
-if (!$model->validate()) {
-    Yii::$app->session->setFlash('errors', $model->getErrors());
-
-    return $this->redirect(['create']);
-}
-
-Yii::$app->session->setFlash('success', 'Record created.');
-
-return $this->redirect(['view', 'id' => $model->id]);
-```
-
-## CSRF protection
-
-Use `yii\inertia\web\Request` for Inertia's cookie-to-header CSRF flow:
-
-```php
-'request' => [
-    'class' => \yii\inertia\web\Request::class,
-    'cookieValidationKey' => 'your-secret-key',
-],
-```
-
-## Resolved-page observation
-
-`PHPForge\Inertia\ResolvedPageObserver` forwards the resolved page payload and shared-prop keys to a callback.
-Observer failures propagate to the caller; the observer does not mutate pages or hide callback failures.
-
-Set `Manager::$pageObserver` to a portable observer. Both initial and Inertia responses notify it after page resolution;
-version conflicts do not. The default is `null`, preserving existing applications. This integration requires the core
-0.3 development line.
+A normal visit renders HTML; an Inertia visit returns a JSON page. The default view supplies the page payload but
+loads no frontend bundle. Continue with [configuration](docs/configuration.md) and the
+[usage examples](docs/examples.md) to connect the application's client.
 
 ## Documentation
 
-- 📚 [Installation guide](docs/installation.md)
-- ⚙️ [Configuration and adapter reference](docs/configuration.md)
-- 💡 [Usage examples](docs/examples.md)
-- 🧪 [Testing guide](docs/testing.md)
+Practical guides and application recipes, with exact contracts in PHPDoc.
+
+- 📚 [Installation guide](docs/installation.md): Composer, bootstrap, CSRF, and frontend setup.
+- ⚙️ [Configuration and adapter reference](docs/configuration.md): manager options, props, root views, and responses.
+- 💡 [Usage examples](docs/examples.md): controllers, prop recipes, validation, and redirects.
+- 🔄 [Migration guide](docs/migration.md) and [upgrade checklist](UPGRADE.md): application changes for existing installations.
+- 🧪 [Testing guide](docs/testing.md): PHPUnit, static analysis, mutation, and documentation checks.
+
+## AI assistance
+
+AI agents: use the repository guides and package skill below. When hosted documentation is available, start at
+`https://yii2-framework.github.io/docs/llms.txt` and fetch a listed page's Markdown by appending `index.md` to its URL.
+
+For the Yii 22 conventions this package builds on, use the `yii2-framework` agent skill from a local
+`yii2-framework/docs` checkout (`skills/yii2-framework/SKILL.md`).
+
+- 🤖 [yii2-inertia-integration skill](docs/agents.md): installation for Claude Code, Codex, and OpenCode.
+
+If hosted sources are unavailable, use the [repository guides](#documentation) and the
+[locally available package skill](skills/yii2-inertia-integration/SKILL.md).
 
 ## Package information
 
