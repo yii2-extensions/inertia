@@ -11,6 +11,7 @@ use PHPForge\Inertia\Event\ProtocolResultCreated;
 use PHPForge\Inertia\Exception\{InvalidPageInputException, PropResolutionException};
 use PHPForge\Inertia\{Page, Protocol, ResolvedPageObserver};
 use PHPForge\Inertia\Result\PageResult;
+use PHPUnit\Framework\Attributes\TestWith;
 use RuntimeException;
 use Yii;
 use yii\base\InvalidConfigException;
@@ -87,7 +88,7 @@ final class ManagerTest extends TestCase
             self::assertSame(
                 [42 => 'Invalid flash key.'],
                 $session->getAllFlashes(false),
-                'A rejected flash should remain available for the next request.',
+                'A rejected flash should remain available in the current request.',
             );
         }
     }
@@ -152,25 +153,6 @@ final class ManagerTest extends TestCase
             $event->request->url,
             'Event must carry the request context.',
         );
-    }
-
-    public function testFailedRenderDoesNotConsumeFlashes(): void
-    {
-        Yii::$app->getSession()->setFlash('errors', ['' => 'Invalid']);
-
-        try {
-            Inertia::render('Dashboard');
-
-            self::fail(
-                'Invalid error data should fail before a response is created.',
-            );
-        } catch (InvalidPageInputException) {
-            self::assertSame(
-                ['errors' => ['' => 'Invalid']],
-                Yii::$app->getSession()->getAllFlashes(false),
-                'A failed render should leave session flashes available for the next request.',
-            );
-        }
     }
 
     public function testFlushSharedRemovesAllSharedProps(): void
@@ -254,6 +236,58 @@ final class ManagerTest extends TestCase
         self::assertTrue(
             $page['preserveFragment'],
             'preserveFragment should be forwarded to the core page.',
+        );
+    }
+
+    /**
+     * @param array<string, string>|string $errors
+     * @param class-string<InvalidConfigException|InvalidPageInputException> $exceptionClass
+     */
+    #[TestWith(['Invalid', InvalidConfigException::class], 'scalar errors')]
+    #[TestWith([['' => 'Invalid'], InvalidPageInputException::class], 'empty field key')]
+    public function testInvalidErrorFlashesExpireAfterRejectedRender(array|string $errors, string $exceptionClass): void
+    {
+        $this->prepareInertiaRequest();
+
+        $session = Yii::$app->getSession();
+
+        $session->setFlash('errors', $errors);
+
+        try {
+            Inertia::render('Dashboard');
+
+            self::fail(
+                'Invalid error data should fail before a response is created.',
+            );
+        } catch (InvalidConfigException|InvalidPageInputException $exception) {
+            self::assertInstanceOf(
+                $exceptionClass,
+                $exception,
+                'The invalid error flash should retain its validation exception type.',
+            );
+        }
+
+        self::assertSame(
+            $errors,
+            $session->get('errors'),
+            'The rejected flash should remain available in the current request.',
+        );
+
+        $session->close();
+
+        Yii::$app->set('session', ['class' => Session::class]);
+
+        $page = $this->extractPage(Inertia::render('Dashboard'));
+
+        self::assertArrayHasKey(
+            'errors',
+            $page['props'],
+            'The next page should include the validation error prop.',
+        );
+        self::assertSame(
+            [],
+            (array) $page['props']['errors'],
+            'The rejected flash should expire before the next request renders.',
         );
     }
 
@@ -978,6 +1012,7 @@ final class ManagerTest extends TestCase
     {
         $session = Yii::$app->getSession();
 
+        $session->setFlash('errors', ['email' => ['Invalid email.']]);
         $session->setFlash('notice', 'Retry the page.');
 
         try {
@@ -1004,6 +1039,11 @@ final class ManagerTest extends TestCase
 
         $page = $this->extractPage($this->manager()->render('Dashboard'));
 
+        self::assertSame(
+            ['email' => ['Invalid email.']],
+            $page['props']['errors'] ?? null,
+            'A failed prop must leave valid error flashes available to the next request.',
+        );
         self::assertSame(
             ['notice' => 'Retry the page.'],
             $page['flash'] ?? null,

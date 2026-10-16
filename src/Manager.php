@@ -203,7 +203,7 @@ final class Manager extends Component
     {
         $request = Yii::$app->getRequest();
 
-        [$errors, $flash] = $this->readFlashes();
+        [$errors, $flash, $pending] = $this->readFlashes();
 
         $input = PageInput::create($component, $props, $this->getVersion())
             ->withSharedProps($this->shared)
@@ -213,6 +213,11 @@ final class Manager extends Component
             ->withClearHistory($this->clearHistory)
             ->withPreserveFragment($this->preserveFragment)
             ->withSharedPropsExposure($this->exposeSharedProps);
+
+        // Retain validated flashes across protocol or callback failures until a page succeeds.
+        foreach ($pending as $key => $value) {
+            Yii::$app->getSession()->setFlash($key, $value);
+        }
 
         $result = $this->getProtocol()->page(
             $this->createRequestContext($request),
@@ -443,34 +448,32 @@ final class Manager extends Component
      *
      * @throws InvalidConfigException if flash keys or validation errors have an unsupported structure.
      *
-     * @return array{array<string, list<string>|string>, array<string, mixed>} Validation errors and remaining flashes.
+     * @return array{
+     *   array<string, list<string>|string>,
+     *   array<string, mixed>,
+     *   array<string, mixed>,
+     * } Validation errors, remaining flashes, and the complete flash snapshot.
      */
     private function readFlashes(): array
     {
         if (!Yii::$app->has('session')) {
-            return [[], []];
+            return [[], [], []];
         }
 
-        $flashes = [];
-        $session = Yii::$app->getSession();
-        $pending = $session->getAllFlashes();
+        $pending = [];
 
-        // Yii marks read flashes for expiry on the next request; retain them until a page succeeds.
-        foreach ($pending as $key => $value) {
-            $session->setFlash((string) $key, $value);
-        }
-
-        foreach ($pending as $key => $value) {
+        foreach (Yii::$app->getSession()->getAllFlashes() as $key => $value) {
             if (!is_string($key)) {
                 throw new InvalidConfigException(
                     Message::SESSION_FLASH_KEY_INVALID->getMessage(),
                 );
             }
 
-            $flashes[$key] = $value;
+            $pending[$key] = $value;
         }
 
         $errors = [];
+        $flashes = $pending;
 
         if (array_key_exists($this->errorFlashKey, $flashes)) {
             $errors = $this->validateErrors($flashes[$this->errorFlashKey]);
@@ -478,7 +481,7 @@ final class Manager extends Component
             unset($flashes[$this->errorFlashKey]);
         }
 
-        return [$errors, $flashes];
+        return [$errors, $flashes, $pending];
     }
 
     /**

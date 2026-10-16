@@ -15,9 +15,13 @@ Installing this skill does not install the adapter, select a JavaScript framewor
 
 ## Consult the relevant guide
 
-Prefer supplied local Markdown or `docs/` in the matching package checkout. A Composer archive may omit guides;
-a copied skill need not have a sibling documentation tree. If local guides are unavailable, check the matching
-revision of <https://github.com/yii2-extensions/inertia/tree/main/docs> and read only the needed page:
+Prefer supplied local Markdown or `docs/` in the matching package checkout. During development, inspect the current
+local files, including uncommitted changes; do not attribute those changes to `HEAD`. A Composer archive may omit
+guides; a copied skill need not have a sibling documentation tree. If local guides are unavailable, obtain the
+installed adapter's version and `source.reference` from the application's `composer.lock` or
+`vendor/composer/installed.json`. Read `docs/` at that tag or source SHA in the
+[package repository](https://github.com/yii2-extensions/inertia), resolving the revision from Composer each time
+instead of defaulting to `main` or hard-coding a SHA in this skill. Read only the needed page:
 
 - `installation.md`: dependencies, development-line resolution, bootstrap, and client prerequisites.
 - `configuration.md`: manager defaults, root view encoding, flashes, CSRF, and observer/dispatcher contracts.
