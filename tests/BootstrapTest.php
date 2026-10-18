@@ -190,6 +190,7 @@ final class BootstrapTest extends TestCase
             'Yii X-Redirect should be normalized to Location.',
         );
     }
+
     public function testBeforeSendNormalizesResponseReturnedByController(): void
     {
         $this->prepareBootstrappedInertiaRequest('PUT');
