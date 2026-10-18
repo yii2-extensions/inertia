@@ -40,7 +40,7 @@ The application supplies its JavaScript client, component resolver, and asset bu
 Yii 2.0.x is outside this package's declared support.
 
 ```bash
-composer require "yii2-extensions/inertia:^0.6"
+composer require yii2-extensions/inertia:^0.6
 ```
 
 See the [installation guide](docs/installation.md) for Yii development-line resolution, bootstrap registration,

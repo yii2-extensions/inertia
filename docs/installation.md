@@ -15,14 +15,14 @@ APIs. The application lockfile records the exact Yii development revision.
 In an existing Yii 22 application:
 
 ```bash
-composer require "yii2-extensions/inertia:^0.6"
+composer require yii2-extensions/inertia:^0.6
 composer check-platform-reqs
 ```
 
 For an application whose root requirements do not yet allow the Yii development line, declare it explicitly:
 
 ```bash
-composer require "yiisoft/yii2:^22.0@dev" "yii2-extensions/inertia:^0.6"
+composer require yiisoft/yii2:^22.0@dev yii2-extensions/inertia:^0.6
 ```
 
 Review Composer's proposed dependency changes if the application currently requires Yii 2.0.x. Changing a constraint
