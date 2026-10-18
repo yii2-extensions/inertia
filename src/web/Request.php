@@ -35,7 +35,8 @@ class Request extends \yii\web\Request
     /**
      * Returns the CSRF token sent via the `X-XSRF-TOKEN` header.
      *
-     * @return string|null Masked CSRF token, or `null` when the header is absent or invalid.
+     * @return string|null Masked token after signed-cookie validation, raw header when cookie validation is disabled,
+     * or `null` when the header is absent or fails signed-cookie validation.
      */
     #[Override]
     public function getCsrfTokenFromHeader(): string|null

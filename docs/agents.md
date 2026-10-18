@@ -22,7 +22,7 @@ npx skills@1.7.2 add ./vendor/yii2-extensions/inertia --list
 
 Installing a dependency under `vendor/` alone does not expose its skill to a client opened at the application root.
 For a public source, first list `npx skills@1.7.2 add yii2-extensions/inertia --list`; install from GitHub only once
-the listing confirms that the skill is published. Local changes are not available on the default branch yet.
+the listing confirms that the skill is published.
 Keep project scope; review destinations before installation. A copied skill is a snapshot to refresh on upgrades.
 
 ## Discovery paths and activation

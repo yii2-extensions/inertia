@@ -45,6 +45,9 @@ return [
             'class' => Request::class,
             'cookieValidationKey' => getenv('COOKIE_VALIDATION_KEY')
                 ?: throw new RuntimeException('Set COOKIE_VALIDATION_KEY in the application environment.'),
+            'parsers' => [
+                'application/json' => \yii\web\JsonParser::class,
+            ],
         ],
     ],
 ];
@@ -53,6 +56,7 @@ return [
 Use the application's existing secret management for a stable, private cookie validation key. Keep its request
 settings, access rules, and CSRF validation. If the application already uses a custom request subclass, reconcile
 its behavior with this adapter rather than silently replacing it.
+Keep existing body parsers when adding the JSON parser used for Inertia form submissions.
 
 The bootstrap registers the `@inertia` alias and creates an `inertia` component of type `yii\inertia\Manager` when
 one is not configured. For requests carrying the Inertia header, it attaches response normalization before send.

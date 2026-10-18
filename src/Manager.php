@@ -14,7 +14,7 @@ use Yii;
 use yii\base\{Component, InvalidConfigException};
 use yii\helpers\{ArrayHelper, Json, Url};
 use yii\inertia\Exception\Message;
-use yii\web\{Request, Response};
+use yii\web\{BadRequestHttpException, Request, Response};
 
 use function array_is_list;
 use function in_array;
@@ -142,6 +142,8 @@ final class Manager extends Component
      *
      * @param array<array-key, mixed>|string $url Destination URL or route array accepted by `Url::to()`.
      *
+     * @throws BadRequestHttpException if the request context is invalid.
+     *
      * @return Response Yii response containing the protocol location or redirect result.
      */
     public function location(array|string $url): Response
@@ -160,6 +162,8 @@ final class Manager extends Component
      * Normalizes a Yii response immediately before it is sent to an Inertia client.
      *
      * @param Response $response Outgoing Yii response to normalize.
+     *
+     * @throws BadRequestHttpException if a redirect request context is invalid.
      */
     public function normalizeResponse(Response $response): void
     {
@@ -176,9 +180,11 @@ final class Manager extends Component
             return;
         }
 
+        $request = $this->createRequestContext(Yii::$app->getRequest());
+
         $result = $this->getProtocol()->redirect(
-            $this->createRequestContext(Yii::$app->getRequest()),
-            $location,
+            $request,
+            $this->resolveRedirectUrl($request, $location),
             $response->statusCode,
         );
 
@@ -196,6 +202,8 @@ final class Manager extends Component
      * @param string $component Client-side component name.
      * @param array<string, mixed> $props Page-specific props.
      * @param array<string, mixed> $viewData Additional data available to the initial root view.
+     *
+     * @throws BadRequestHttpException if the request context is invalid.
      *
      * @return Response Yii response containing the initial HTML document or Inertia JSON page.
      */
@@ -285,7 +293,7 @@ final class Manager extends Component
      *
      * @param Request $request Yii request to adapt.
      *
-     * @throws InvalidRequestContextException if Yii supplies invalid request data.
+     * @throws BadRequestHttpException if Yii supplies invalid request data.
      *
      * @return RequestContext Validated request data consumed by the protocol core.
      */
@@ -313,12 +321,16 @@ final class Manager extends Component
             }
         }
 
-        return new RequestContext(
-            method: $request->getMethod(),
-            url: $request->getUrl(),
-            absoluteUrl: $request->getAbsoluteUrl(),
-            headers: $headers,
-        );
+        try {
+            return new RequestContext(
+                method: $request->getMethod(),
+                url: $request->getUrl(),
+                absoluteUrl: $request->getAbsoluteUrl(),
+                headers: $headers,
+            );
+        } catch (InvalidRequestContextException $exception) {
+            throw new BadRequestHttpException($exception->getMessage(), previous: $exception);
+        }
     }
 
     /**
@@ -482,6 +494,35 @@ final class Manager extends Component
         }
 
         return [$errors, $flashes, $pending];
+    }
+
+    /**
+     * Resolves a Yii redirect reference against the current request before core URL validation.
+     */
+    private function resolveRedirectUrl(RequestContext $request, string $url): string
+    {
+        if (str_starts_with($url, '//')) {
+            return Url::ensureScheme($url, explode(':', $request->absoluteUrl)[0]);
+        }
+
+        if (preg_match('/^(?:[a-z][a-z0-9+.-]*:|\/)/i', $url) === 1) {
+            return $url;
+        }
+
+        if ($url === '' || str_starts_with($url, '#')) {
+            return $request->absoluteUrl . $url;
+        }
+
+        $base = explode('?', $request->absoluteUrl)[0];
+
+        if (str_starts_with($url, '?')) {
+            return $base . $url;
+        }
+
+        $segments = explode('/', $base);
+        array_pop($segments);
+
+        return implode('/', $segments) . '/' . $url;
     }
 
     /**

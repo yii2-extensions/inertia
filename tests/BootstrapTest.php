@@ -6,9 +6,11 @@ namespace yii\inertia\tests;
 
 use PHPUnit\Framework\Attributes\TestWith;
 use stdClass;
+use WeakReference;
 use Yii;
 use yii\base\Event;
 use yii\inertia\{Bootstrap, Manager};
+use yii\inertia\tests\support\RecordingDispatcher;
 use yii\web\Response;
 
 /**
@@ -189,6 +191,47 @@ final class BootstrapTest extends TestCase
         );
     }
 
+    public function testBeforeSendNormalizesResponseReturnedByController(): void
+    {
+        $this->prepareBootstrappedInertiaRequest('PUT');
+
+        $request = Yii::$app->getRequest();
+
+        $request->setBodyParams([$request->csrfParam => $request->getCsrfToken()]);
+
+        Yii::$app->catchAll = ['site/redirect'];
+
+        $response = Yii::$app->handleRequest($request);
+
+        self::assertNotSame(
+            Yii::$app->getResponse(),
+            $response,
+            'The action must return its own response.',
+        );
+
+        $response->trigger(Response::EVENT_BEFORE_SEND);
+
+        self::assertSame(
+            303,
+            $response->statusCode,
+            'A controller-created response must normalize write redirects.',
+        );
+        self::assertSame(
+            'https://example.test/target',
+            $response->getHeaders()->get('Location'),
+            'Location header should indicate the redirect target.',
+        );
+        self::assertFalse(
+            $response->getHeaders()->has('X-Redirect'),
+            'X-Redirect header should not be present.',
+        );
+        self::assertSame(
+            'X-Inertia',
+            $response->getHeaders()->get('Vary'),
+            'Vary header should indicate X-Inertia.',
+        );
+    }
+
     public function testBeforeSendPrefetchKeepsFragmentRedirect(): void
     {
         $this->prepareBootstrappedInertiaRequest();
@@ -250,6 +293,35 @@ final class BootstrapTest extends TestCase
             Manager::class,
             Yii::$app->get('inertia'),
             'Bootstrap should register the adapter manager.',
+        );
+    }
+
+    public function testNormalizerDoesNotRetainDestroyedApplication(): void
+    {
+        $this->prepareBootstrappedInertiaRequest('PUT');
+
+        $application = WeakReference::create(Yii::$app);
+
+        $response = (new Response())->redirect('/target');
+
+        $this->destroyApplication();
+
+        gc_collect_cycles();
+
+        $response->trigger(Response::EVENT_BEFORE_SEND);
+
+        self::assertNull(
+            $application->get(),
+            'The global response handler must not retain the previous application.',
+        );
+        self::assertSame(
+            302,
+            $response->statusCode,
+            'An orphaned response must not use another application.',
+        );
+        self::assertNull(
+            $response->getHeaders()->get('Vary'),
+            'Vary header should indicate X-Inertia.',
         );
     }
 
@@ -352,6 +424,73 @@ final class BootstrapTest extends TestCase
         self::assertFalse(
             $response->getHeaders()->has('X-Redirect'),
             'Normalization should remove X-Redirect.',
+        );
+    }
+
+    public function testNormalizerIgnoresAnotherApplicationWithoutBootstrap(): void
+    {
+        $this->prepareBootstrappedInertiaRequest('PUT');
+
+        $previous = Yii::$app;
+        $response = (new Response())->redirect('/target');
+
+        $this->destroyApplication();
+
+        new \yii\web\Application([
+            'id' => 'another-app',
+            'basePath' => __DIR__,
+            'components' => ['request' => ['cookieValidationKey' => 'another-key']],
+        ]);
+
+        $response->trigger(Response::EVENT_BEFORE_SEND);
+
+        self::assertNotSame(
+            $previous,
+            Yii::$app,
+            'The application should not be the same as the previous one.',
+        );
+        self::assertSame(
+            302,
+            $response->statusCode,
+            'The response should retain its original status code.',
+        );
+        self::assertNull(
+            $response->getHeaders()->get('Vary'),
+            'Vary header should indicate X-Inertia.',
+        );
+    }
+
+    public function testRepeatedBootstrapRegistersOneNormalizer(): void
+    {
+        $this->prepareBootstrappedInertiaRequest('PUT');
+
+        (new Bootstrap())->bootstrap(Yii::$app);
+
+        $dispatcher = new RecordingDispatcher();
+
+        $manager = Yii::$app->get('inertia');
+
+        self::assertInstanceOf(
+            Manager::class,
+            $manager,
+            'The manager should be an instance of Manager.',
+        );
+
+        $manager->eventDispatcher = $dispatcher;
+
+        $response = (new Response())->redirect('/target');
+
+        $response->trigger(Response::EVENT_BEFORE_SEND);
+
+        self::assertSame(
+            303,
+            $response->statusCode,
+            'The response should have status code 303 after normalization.',
+        );
+        self::assertCount(
+            1,
+            $dispatcher->events,
+            'Repeated bootstrap must not normalize a response twice.',
         );
     }
 
