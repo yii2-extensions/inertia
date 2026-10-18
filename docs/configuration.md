@@ -85,7 +85,8 @@ client's initial-page format; these two uses of `data-page` have different value
 ## Validation errors and flash messages
 
 `errorFlashKey` must contain an array with string field names and values that are strings or lists of strings, such
-as `['email' => ['Enter an email address.']]`. Invalid structures throw `yii\base\InvalidConfigException`.
+as `['email' => ['Enter an email address.']]`. Invalid structures throw `yii\base\InvalidConfigException`;
+invalid field keys, including an empty string, throw `PHPForge\Inertia\Exception\InvalidPageInputException`.
 The core emits these in `props.errors`, including on partial reloads, and applies `X-Inertia-Error-Bag` when present.
 Other session flashes go to the **top-level `flash` page field**. Read them using the client API for that field.
 
@@ -114,6 +115,10 @@ validation to make a failing request pass.
 Return Yii redirects after writes. For an Inertia request, the bootstrap passes `Location` or `X-Redirect` through
 the core before send; a `302` after PUT/PATCH/DELETE becomes `303`. Use `Inertia::location()` for an external visit:
 it returns a `409` with `X-Inertia-Location` for an Inertia request, and a normal redirect for a regular request.
+Normalization also covers controller-created responses. Relative redirect destinations resolve against the current
+request URL before core validation.
+Malformed request data rejected by the core, such as an invalid method override, produces HTTP `400` through
+`yii\web\BadRequestHttpException`.
 
 Page responses merge `Vary: X-Inertia` across all existing header lines and preserve `Vary: *`. Protocol results
 replace stale Inertia page/control headers on the current Yii response. An outdated version on an Inertia GET

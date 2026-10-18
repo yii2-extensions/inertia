@@ -28,4 +28,9 @@ final class SiteController extends Controller
             ],
         );
     }
+
+    public function actionRedirect(): Response
+    {
+        return (new Response())->redirect('/target');
+    }
 }

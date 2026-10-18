@@ -8,16 +8,17 @@ use DateTimeImmutable;
 use DOMDocument;
 use PHPForge\Inertia\Clock\Clock;
 use PHPForge\Inertia\Event\ProtocolResultCreated;
-use PHPForge\Inertia\Exception\{InvalidPageInputException, PropResolutionException};
+use PHPForge\Inertia\Exception\{InvalidPageInputException, InvalidRequestContextException, PropResolutionException};
 use PHPForge\Inertia\{Page, Protocol, ResolvedPageObserver};
 use PHPForge\Inertia\Result\PageResult;
-use PHPUnit\Framework\Attributes\TestWith;
+use PHPUnit\Framework\Attributes\{DataProviderExternal, TestWith};
 use RuntimeException;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\inertia\{Inertia, Manager};
+use yii\inertia\tests\providers\ManagerProvider;
 use yii\inertia\tests\support\RecordingDispatcher;
-use yii\web\{Request, Response, Session};
+use yii\web\{BadRequestHttpException, Request, Response, Session};
 
 /**
  * Integration tests for {@see Manager} as the Yii2 adapter for the protocol core.
@@ -291,6 +292,67 @@ final class ManagerTest extends TestCase
         );
     }
 
+    #[TestWith(['render', 'header'])]
+    #[TestWith(['location', 'header'])]
+    #[TestWith(['redirect', 'header'])]
+    #[TestWith(['render', 'body'])]
+    #[TestWith(['location', 'body'])]
+    #[TestWith(['redirect', 'body'])]
+    public function testInvalidRequestContextThrowsBadRequestHttpException(string $operation, string $source): void
+    {
+        $this->prepareInertiaRequest('POST');
+        $this->setAbsoluteUrl('/settings');
+
+        $originalPost = $_POST;
+
+        if ($source === 'header') {
+            Yii::$app->getRequest()->getHeaders()->set('X-Http-Method-Override', 'BAD METHOD');
+        } else {
+            $_POST['_method'] = 'BAD METHOD';
+        }
+
+        try {
+            $manager = $this->manager();
+
+            if ($operation === 'render') {
+                $manager->render('Settings');
+            } elseif ($operation === 'location') {
+                $manager->location('/target');
+            } else {
+                $response = new Response(['statusCode' => 302]);
+
+                $response->getHeaders()->set('Location', '/target');
+                $manager->normalizeResponse($response);
+            }
+
+            self::fail(
+                'Malformed request data should produce an HTTP client error.',
+            );
+        } catch (BadRequestHttpException $exception) {
+            $response = new Response();
+
+            $response->setStatusCodeByException($exception);
+
+            self::assertSame(
+                400,
+                $response->statusCode,
+                'Yii should classify malformed request data as HTTP 400.',
+            );
+            self::assertInstanceOf(
+                InvalidRequestContextException::class,
+                $exception->getPrevious(),
+                'The HTTP exception should retain the core validation failure.',
+            );
+            self::assertSame(
+                $exception->getPrevious()->getMessage(),
+                $exception->getMessage(),
+                'The HTTP exception should preserve the validation diagnostic.',
+            );
+        } finally {
+            $_POST = $originalPost;
+        }
+    }
+
     public function testIsInertiaRequestAcceptsCanonicalAndNumericMarkers(): void
     {
         $manager = $this->manager();
@@ -513,6 +575,74 @@ final class ManagerTest extends TestCase
         );
     }
 
+    public function testNormalizeResponseResolvesEmptyLocationToCurrentUrl(): void
+    {
+        $this->prepareInertiaRequest('PUT');
+        $this->setAbsoluteUrl('/posts/42?tab=main');
+
+        $response = Yii::$app->getResponse();
+
+        $response->setStatusCode(302);
+        $response->getHeaders()->set('Location', '');
+
+        $this->manager()->normalizeResponse($response);
+
+        self::assertSame(
+            303,
+            $response->statusCode,
+            'Empty Location should resolve to the current URL with status 303.',
+        );
+        self::assertSame(
+            'https://example.test/posts/42?tab=main',
+            $response->getHeaders()->get('Location'),
+            'The Location header should be resolved to the current URL.',
+        );
+    }
+
+    #[DataProviderExternal(ManagerProvider::class, 'redirectReferences')]
+    public function testNormalizeResponseResolvesYiiRedirectReferences(string $target, string $expected, int $status): void
+    {
+        $this->prepareInertiaRequest('PUT');
+
+        $request = Yii::$app->getRequest();
+
+        $request->setHostInfo('https://example.test:8443');
+        $request->setUrl('/posts/42?tab=main');
+
+        $response = Yii::$app->getResponse()->redirect($target);
+
+        $this->manager()->normalizeResponse($response);
+
+        self::assertSame(
+            $status,
+            $response->statusCode,
+            'The redirect reference must preserve protocol semantics.',
+        );
+        self::assertSame(
+            $expected,
+            $response->getHeaders()->get($status === 409 ? 'X-Inertia-Redirect' : 'Location'),
+            'The resolved URL should match the expected value.',
+        );
+        self::assertFalse(
+            $response->getHeaders()->has('X-Redirect'),
+            'Normalization should remove X-Redirect.',
+        );
+    }
+
+    #[TestWith(['/', 'https://example.test/next'])]
+    #[TestWith(['/posts/', 'https://example.test/posts/next'])]
+    #[TestWith(['/posts', 'https://example.test/next'])]
+    public function testNormalizeResponseUsesCurrentDirectory(string $requestUrl, string $expected): void
+    {
+        $this->prepareInertiaRequest('PUT');
+        $this->setAbsoluteUrl($requestUrl);
+        $response = Yii::$app->getResponse()->redirect('next');
+
+        $this->manager()->normalizeResponse($response);
+
+        self::assertSame($expected, $response->getHeaders()->get('Location'));
+    }
+
     public function testPartialReloadHeadersAreForwardedToCore(): void
     {
         $this->prepareInertiaRequest();
@@ -588,6 +718,32 @@ final class ManagerTest extends TestCase
             $observed,
             'Both response modes must notify the portable observer once with resolved shared keys.',
         );
+    }
+
+    #[TestWith(['header'])]
+    #[TestWith(['body'])]
+    public function testRenderAcceptsValidExtensionMethodOverride(string $source): void
+    {
+        $this->prepareInertiaRequest('POST');
+        $this->setAbsoluteUrl('/settings');
+
+        $originalPost = $_POST;
+
+        if ($source === 'header') {
+            Yii::$app->getRequest()->getHeaders()->set('X-Http-Method-Override', 'PROPFIND');
+        } else {
+            $_POST['_method'] = 'PROPFIND';
+        }
+
+        try {
+            self::assertSame(
+                200,
+                $this->manager()->render('Settings')->statusCode,
+                'A valid extension method should remain accepted by the protocol core.',
+            );
+        } finally {
+            $_POST = $originalPost;
+        }
     }
 
     public function testRenderConsumesAndMapsSessionErrorsAndFlash(): void
@@ -1006,6 +1162,23 @@ final class ManagerTest extends TestCase
             $manager->getShared(),
             'A nested shared prop should replace a scalar intermediate value.',
         );
+    }
+
+    #[TestWith(['javascript:alert(1)'])]
+    #[TestWith(['//user:password@other.test/next'])]
+    #[TestWith(["next\nheader"])]
+    public function testThrowInvalidArgumentExceptionForUnsafeRedirectReferences(string $target): void
+    {
+        $this->prepareInertiaRequest('PUT');
+
+        $response = Yii::$app->getResponse();
+
+        $response->setStatusCode(302);
+        $response->getHeaders()->set('Location', $target);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->manager()->normalizeResponse($response);
     }
 
     public function testThrowPropResolutionExceptionWhenPropFailsWithoutExpiringFlashes(): void

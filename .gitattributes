@@ -28,7 +28,11 @@
 /.gitattributes                 export-ignore
 /.github                        export-ignore
 /.gitignore                     export-ignore
+/.prettierignore                export-ignore
+/.prettierrc.json               export-ignore
 /.styleci.yml                   export-ignore
+/.stylelintignore               export-ignore
+/AGENTS.md                      export-ignore
 /codeception.yml                export-ignore
 /composer-require-checker.json  export-ignore
 /docs                           export-ignore
@@ -38,6 +42,7 @@
 /phpunit.xml.dist               export-ignore
 /rector.php                     export-ignore
 /runtime                        export-ignore
+/scaffold-lock.json             export-ignore
 /tests                          export-ignore
 
 # Avoid merge conflicts in CHANGELOG
