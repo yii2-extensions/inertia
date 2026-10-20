@@ -13,6 +13,33 @@ composer check-platform-reqs
 CI tests PHP 8.3, 8.4, and 8.5 with `gd` and `intl`. The PHP suite uses PHPUnit 12.5 and the installed Yii 22/core
 revisions. Keep an application lockfile when verifying an integration; this library's lockfile is ignored.
 
+## Repository quality checks
+
+Make the CLI tools used by the shared quality workflow available on `PATH`:
+actionlint with its ShellCheck helper, codespell, EditorConfig Checker, markdownlint-cli2, Prettier and
+yamllint. The command reads the repository's linter, formatter and ignore files. It skips ignored local dependency, runtime and private artifact trees that are absent from a clean CI checkout.
+
+```bash
+composer quality
+```
+
+## Workflow security checks
+
+Make zizmor and Gitleaks available on `PATH`. Audit the current workflow files
+with the same pedantic persona used by the shared security workflow:
+
+```bash
+composer zizmor
+```
+
+Run that audit and scan Git history with the repository's Gitleaks configuration:
+
+```bash
+composer security
+```
+
+Zizmor's online audits require GitHub API access. Report offline limitations separately; do not count a skipped audit as passed.
+
 ## Application checks
 
 Review the [configuration](configuration.md) and [application recipes](examples.md), then run the consuming
@@ -47,6 +74,16 @@ composer mutation-static
 
 Retain the configured 100% mutation thresholds. Run mutation tests when relevant to runtime work; an unchanged
 runtime does not need a fresh mutation run merely because documentation or skill instructions changed.
+
+## Coding standards (ECS)
+
+Check standards without changing files:
+
+```bash
+composer ecs-check
+```
+
+`composer ecs` applies fixes. Review its changes before keeping them.
 
 ## Documentation quality
 

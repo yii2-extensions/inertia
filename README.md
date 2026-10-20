@@ -12,13 +12,13 @@
 
 <p align="center">
     <a href="https://github.com/yii2-extensions/inertia/actions/workflows/build.yml" target="_blank">
-        <img src="https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/build.yml?style=for-the-badge&logo=github&label=PHPUnit" alt="PHPUnit">
+        <img src="https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/build.yml?style=for-the-badge&label=PHPUnit&logo=github" alt="PHPUnit">
     </a>
     <a href="https://dashboard.stryker-mutator.io/reports/github.com/yii2-extensions/inertia/main" target="_blank">
         <img src="https://img.shields.io/endpoint?style=for-the-badge&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fyii2-extensions%2Finertia%2Fmain" alt="Mutation Testing">
     </a>
     <a href="https://github.com/yii2-extensions/inertia/actions/workflows/static.yml" target="_blank">
-        <img src="https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/static.yml?style=for-the-badge&logo=github&label=PHPStan" alt="PHPStan">
+        <img src="https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/static.yml?style=for-the-badge&label=PHPStan&logo=github" alt="PHPStan">
     </a>
     <a href="https://github.com/yii2-extensions/inertia/actions/workflows/security.yml" target="_blank">
         <img src="https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/security.yml?style=for-the-badge&label=Security&logo=github" alt="Security">
@@ -79,8 +79,9 @@ Practical guides and application recipes, with exact contracts in PHPDoc.
 AI agents: use the repository guides and package skill below. When hosted documentation is available, start at
 `https://yii2-framework.github.io/docs/llms.txt` and fetch a listed page's Markdown by appending `index.md` to its URL.
 
-For the Yii 22 conventions this package builds on, use the `yii2-framework` agent skill from a local
-`yii2-framework/docs` checkout (`skills/yii2-framework/SKILL.md`).
+For the Yii 22 conventions this package builds on, install the `yii2-framework` skill from
+[`yii2-extensions/skill`](https://github.com/yii2-extensions/skill)
+through the [shared Composer setup](https://yii2-framework.github.io/docs/project/ai-agents/#composer-installation).
 
 - 🤖 [yii2-inertia-integration skill](docs/agents.md): installation for Claude Code, Codex, and OpenCode.
 
