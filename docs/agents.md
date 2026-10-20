@@ -6,6 +6,23 @@ normalization, observers, and migration. Installing the skill does not install P
 
 ## Install in an application
 
+### Automatic Composer installation
+
+Complete the [one-time application setup](https://yii2-framework.github.io/docs/project/ai-agents/#composer-installation) to enable `llm/skills`
+and set `auto-sync` to `true` in `skills.json`. Approve `yii2-extensions/inertia` explicitly in
+`dependencies.composer.trusted`.
+The installed package must include its skill bundle; its `extra.skills.source` declares the directory.
+
+```bash
+composer install
+composer skills:show
+```
+
+With `auto-sync` enabled, later dependency installs and updates synchronize the skill automatically; no per-skill
+installer is required. If `auto-sync` is `false`, run `composer skills:update` after dependency installation or updates.
+
+### Optional npx installation
+
 Run the pinned installer from the application's root. For a local package checkout:
 
 ```bash
@@ -56,4 +73,4 @@ selection. Record the client version, loaded skill source and results from the c
 
 ---
 
-[Migration](migration.md) · [Testing →](testing.md) · [Back to documentation](../README.md#documentation)
+[Back to documentation](../README.md#documentation)
