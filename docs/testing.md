@@ -71,15 +71,14 @@ Run mutation testing with PHPStan static analysis enabled.
 composer mutation-static
 ```
 
-Thresholds, thread count and memory options live in `infection.json5`. CI enforces the same thresholds; retain
-the configured 100% mutation thresholds. Run mutation tests when relevant to runtime work; an unchanged runtime
-does not need a fresh mutation run merely because documentation or skill instructions changed.
+Thresholds, thread count and memory options live in `infection.json5`. CI enforces the same thresholds; retain the
+configured 100% mutation thresholds. Run mutation tests when relevant to runtime work; an unchanged runtime does not
+need a fresh mutation run merely because documentation or skill instructions changed.
 
 ## Repository quality checks
 
-Make the CLI tools used by the shared quality workflow available on `PATH`:
-actionlint with its ShellCheck helper, codespell, EditorConfig Checker, markdownlint-cli2, Prettier and
-yamllint. Run all checks:
+Make the CLI tools used by the shared quality workflow available on `PATH`: actionlint with its ShellCheck helper,
+codespell, EditorConfig Checker, markdownlint-cli2, Prettier and yamllint. Run all checks:
 
 ```bash
 composer quality
@@ -101,12 +100,12 @@ The linter configuration lives in `.github/linters`, and the Prettier configurat
 
 Run Prettier, EditorConfig Checker and markdownlint together on edited text, including new guides and hidden skill
 discovery paths. Prettier uses two spaces for Markdown; numbered items with multiline continuations can produce
-three-space indentation and fail EditorConfig. Prefer unnested bullets or separate paragraphs for long steps, then
-rerun all three checks after formatting.
+three-space indentation and fail EditorConfig. Prefer unnested bullets or separate paragraphs for long steps, then rerun
+all three checks after formatting.
 
-Validate relative link targets/anchors and symlink targets. When links refer to unpublished work, distinguish the
-local source from published availability. Do not claim a site build or public skill download until the
-coordinating documentation build has produced and checked them.
+Validate relative link targets/anchors and symlink targets. When links refer to unpublished work, distinguish the local
+source from published availability. Do not claim a site build or public skill download until the coordinating
+documentation build has produced and checked them.
 
 ## Static analysis (PHPStan)
 
@@ -126,8 +125,8 @@ composer tests
 
 ## Workflow security checks
 
-Make zizmor and Gitleaks available on `PATH`. Audit the current workflow files
-with the same pedantic persona used by the shared security workflow:
+Make zizmor and Gitleaks available on `PATH`. Audit the current workflow files with the same pedantic persona used by
+the shared security workflow:
 
 ```bash
 composer zizmor
@@ -139,22 +138,21 @@ Scan Git history for secrets with the repository's Gitleaks configuration:
 composer gitleaks
 ```
 
-Run both checks. Findings make the command fail; inspect them rather than
-disabling the checks.
+Run both checks. Findings make the command fail; inspect them rather than disabling the checks.
 
 ```bash
 composer security
 ```
 
-Zizmor needs GitHub API access for its online audits. If the tool runs offline,
-report that limit separately. To request an offline audit explicitly:
+Zizmor needs GitHub API access for its online audits. If the tool runs offline, report that limit separately. To request
+an offline audit explicitly:
 
 ```bash
 composer zizmor -- --offline
 ```
 
-Report hosted CI execution and its PHP/OS matrix separately from these local
-commands. Keep generated reports in ignored `internal/`.
+Report hosted CI execution and its PHP/OS matrix separately from these local commands. Keep generated reports in ignored
+`internal/`.
 
 ## Passing extra arguments
 
@@ -196,12 +194,12 @@ revisions. Keep an application lockfile when verifying an integration; this libr
 Review the [configuration](configuration.md) and [application recipes](examples.md), then run the consuming
 application's own checks.
 
-`ManagerTest` covers validation/flash lifetime across requests, asset conflicts, page encoding, and response
-headers; `RequestTest` covers signed CSRF handling, and `BootstrapTest` covers write redirects.
+`ManagerTest` covers validation/flash lifetime across requests, asset conflicts, page encoding, and response headers;
+`RequestTest` covers signed CSRF handling, and `BootstrapTest` covers write redirects.
 
 For application acceptance, additionally mount the actual client, navigate between two pages, submit a valid and an
-invalid form, inspect the cookie/header exchange, resolve deferred UI, and retry with an outdated asset version.
-Record server and browser evidence separately.
+invalid form, inspect the cookie/header exchange, resolve deferred UI, and retry with an outdated asset version. Record
+server and browser evidence separately.
 
 Lint application-owned PHP snippets explicitly when adapting the guide recipes.
 

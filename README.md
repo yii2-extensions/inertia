@@ -43,8 +43,8 @@ Yii 2.0.x is outside this package's declared support.
 composer require yii2-extensions/inertia:^0.6
 ```
 
-See the [installation guide](docs/installation.md) for Yii development-line resolution, bootstrap registration,
-CSRF configuration, and frontend setup.
+See the [installation guide](docs/installation.md) for Yii development-line resolution, bootstrap registration, CSRF
+configuration, and frontend setup.
 
 ## Quick start
 
@@ -60,9 +60,9 @@ Return a page from an existing controller action:
 return \yii\inertia\Inertia::render('Dashboard', ['stats' => ['visits' => 42]]);
 ```
 
-A normal visit renders HTML; an Inertia visit returns a JSON page. The default view supplies the page payload but
-loads no frontend bundle. Continue with [configuration](docs/configuration.md) and the
-[usage examples](docs/examples.md) to connect the application's client.
+A normal visit renders HTML; an Inertia visit returns a JSON page. The default view supplies the page payload but loads
+no frontend bundle. Continue with [configuration](docs/configuration.md) and the [usage examples](docs/examples.md) to
+connect the application's client.
 
 ## Documentation
 
@@ -71,22 +71,27 @@ Practical guides and application recipes, with exact contracts in PHPDoc.
 - 📚 [Installation guide](docs/installation.md): Composer, bootstrap, CSRF, and frontend setup.
 - ⚙️ [Configuration and adapter reference](docs/configuration.md): manager options, props, root views, and responses.
 - 💡 [Usage examples](docs/examples.md): controllers, prop recipes, validation, and redirects.
-- 🔄 [Migration guide](docs/migration.md) and [upgrade checklist](UPGRADE.md): application changes for existing installations.
+- 🔄 [Upgrade guide](UPGRADE.md) and [migration guide](docs/migration.md): application changes for existing
+  installations.
 - 🧪 [Testing guide](docs/testing.md): PHPUnit, static analysis, mutation, and documentation checks.
+
+The guides and the [API reference](https://yii2-framework.github.io/docs/extensions/inertia/reference/) generated from
+the PHPDoc in `src/` are published at <https://yii2-framework.github.io/docs/extensions/inertia/>.
 
 ## AI assistance
 
-AI agents: use the repository guides and package skill below. When hosted documentation is available, start at
-`https://yii2-framework.github.io/docs/llms.txt` and fetch a listed page's Markdown by appending `index.md` to its URL.
+AI agents: read the [documentation index](https://yii2-framework.github.io/docs/llms.txt) and fetch the Markdown version
+of a page by appending `index.md` to its URL. The
+[AI agents guide](https://yii2-framework.github.io/docs/project/ai-agents/) covers skill installation, client setup and
+verification.
 
-For the Yii 22 conventions this package builds on, install the `yii2-framework` skill from
-[`yii2-extensions/skill`](https://github.com/yii2-extensions/skill)
-through the [shared Composer setup](https://yii2-framework.github.io/docs/project/ai-agents/#composer-installation).
+- 🤖 [`yii2-inertia-integration` skill](docs/agents.md): Inertia integration.
+- 🧭 [`yii2-framework` skill](https://yii2-framework.github.io/docs/guide/skills/yii2-framework/): Yii 22.0 application
+  conventions.
 
-- 🤖 [yii2-inertia-integration skill](docs/agents.md): installation for Claude Code, Codex, and OpenCode.
-
-If hosted sources are unavailable, use the [repository guides](#documentation) and the
-[locally available package skill](skills/yii2-inertia-integration/SKILL.md).
+The hosted documentation covers Yii 22.0. If it does not match the installed revision or is unavailable, use the
+[repository guides](#documentation), the [skill source](skills/yii2-inertia-integration/SKILL.md), the source PHPDoc and
+the [changelog](CHANGELOG.md).
 
 ## Package information
 

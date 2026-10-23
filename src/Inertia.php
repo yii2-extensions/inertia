@@ -26,6 +26,9 @@ use yii\web\Response;
  */
 final class Inertia
 {
+    /**
+     * Application component ID of the Inertia manager.
+     */
     private const string COMPONENT_ID = 'inertia';
 
     /**

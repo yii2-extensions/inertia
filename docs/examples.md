@@ -2,9 +2,9 @@
 
 ## Adapt the application recipes
 
-Merge the [installation](installation.md#register-the-integration) and [manager configuration](configuration.md)
-into the application's existing web configuration. Adapt the snippets below to its component resolver and asset
-build, and keep a stable private cookie-validation key in its environment.
+Merge the [installation](installation.md#register-the-integration) and [manager configuration](configuration.md) into
+the application's existing web configuration. Adapt the snippets below to its component resolver and asset build, and
+keep a stable private cookie-validation key in its environment.
 
 ## Render from a controller action
 
@@ -17,14 +17,14 @@ public function actionIndex(): \yii\web\Response
 }
 ```
 
-The component string must match the frontend resolver. A controller extending `yii\inertia\web\Controller` can
-use `$this->inertia('Dashboard', $props)` instead. This returns Yii's response, not a view string.
+The component string must match the frontend resolver. A controller extending `yii\inertia\web\Controller` can use
+`$this->inertia('Dashboard', $props)` instead. This returns Yii's response, not a view string.
 
 ## Application root view
 
-Create the application-owned file configured by `Manager::$rootView`, for example
-`@app/views/layouts/inertia.php`. Register the application's own asset bundle where indicated and preserve the
-root ID, safe JSON script, CSRF initialization, and Yii page lifecycle:
+Create the application-owned file configured by `Manager::$rootView`, for example `@app/views/layouts/inertia.php`.
+Register the application's own asset bundle where indicated and preserve the root ID, safe JSON script, CSRF
+initialization, and Yii page lifecycle:
 
 ```php
 <?php
@@ -65,8 +65,8 @@ $this->beginPage();
 <?php $this->endPage();
 ```
 
-The JSON script's `data-page` identifies the root for Inertia v3. For clients that read JSON from a root attribute,
-use the encoding described in [configuration](configuration.md#root-view). Connect the application's client using
+The JSON script's `data-page` identifies the root for Inertia v3. For clients that read JSON from a root attribute, use
+the encoding described in [configuration](configuration.md#root-view). Connect the application's client using
 [installation](installation.md#connect-the-frontend).
 
 ## Shared props
@@ -79,9 +79,9 @@ After bootstrap, add a value for subsequent page renders in the current request:
     : ['id' => Yii::$app->user->getId()]);
 ```
 
-The application must have a configured `user` component for this recipe. Select only the identity fields needed by
-the client. For application-wide shared values, use the manager configuration. A page's `auth` prop can replace
-the shared `auth` array; preserve needed nested values explicitly.
+The application must have a configured `user` component for this recipe. Select only the identity fields needed by the
+client. For application-wide shared values, use the manager configuration. A page's `auth` prop can replace the shared
+`auth` array; preserve needed nested values explicitly.
 
 ## Prop recipes
 
@@ -119,9 +119,9 @@ return Inertia::render('Dashboard', [
 | `scroll($value, $metadata, $wrapper)` | Supply an infinite-scroll page.                          | The feed has current/adjacent cursors and a `data` merge path.         |
 | `scrollMetadata(...)`                 | Build metadata consumed by `scroll()`.                   | Returns `ScrollMetadata`, rather than a prop wrapper.                  |
 
-All prop callbacks take zero arguments. Deferred groups are fetched together by a compatible client; the optional
-third `defer()` argument enables core rescue metadata for callback failures. Check client support before adding
-advanced props. For fluent modifiers and exact contracts use the installed `php-forge/inertia` API.
+All prop callbacks take zero arguments. Deferred groups are fetched together by a compatible client; the optional third
+`defer()` argument enables core rescue metadata for callback failures. Check client support before adding advanced
+props. For fluent modifiers and exact contracts use the installed `php-forge/inertia` API.
 
 A matching partial request to the page above uses:
 
@@ -131,8 +131,8 @@ X-Inertia-Partial-Component: Dashboard
 X-Inertia-Partial-Data: users,activity
 ```
 
-With these headers, `users` and `activity` resolve, `stats` is omitted, and always props survive. The partial
-component name must match the rendered component; the headers are protocol input, not an authorization boundary.
+With these headers, `users` and `activity` resolve, `stats` is omitted, and always props survive. The partial component
+name must match the rendered component; the headers are protocol input, not an authorization boundary.
 
 ## Validation redirect
 
@@ -146,15 +146,15 @@ if (!$model->validate()) {
 }
 ```
 
-Continue with the application's persistence logic, and set a success flash only after the write succeeds. The
-error flash becomes `props.errors`; other flashes become the top-level `flash` field. `ManagerTest` checks those
-shapes, consumption, rejection of a malformed error flash, and preservation across an asset-conflict reload.
+Continue with the application's persistence logic, and set a success flash only after the write succeeds. The error
+flash becomes `props.errors`; other flashes become the top-level `flash` field. `ManagerTest` checks those shapes,
+consumption, rejection of a malformed error flash, and preservation across an asset-conflict reload.
 
 ## Redirects and external locations
 
-Return `$this->redirect(['index'])` from the application's write action. Bootstrap normalizes the outgoing response
-for Inertia requests. `BootstrapTest` triggers the before-send event for PUT, PATCH, and DELETE and checks that
-`302` becomes `303`.
+Return `$this->redirect(['index'])` from the application's write action. Bootstrap normalizes the outgoing response for
+Inertia requests. `BootstrapTest` triggers the before-send event for PUT, PATCH, and DELETE and checks that `302`
+becomes `303`.
 
 For a trusted external destination:
 
@@ -167,10 +167,10 @@ Expect `409` plus `X-Inertia-Location` for an Inertia request and a standard red
 ## Observe a resolved page
 
 `ManagerTest` configures `PHPForge\Inertia\ResolvedPageObserver` with a callback taking the resolved payload and
-shared-prop keys and checks initial and JSON responses. For application integration, set
-`pageObserver` before rendering and select the diagnostics to record. Observer errors propagate; they preserve
-session flashes. A version conflict does not notify a page observer. Protocol events are a separate integration
-through `eventDispatcher`; see [configuration](configuration.md#observe-pages-and-protocol-results).
+shared-prop keys and checks initial and JSON responses. For application integration, set `pageObserver` before rendering
+and select the diagnostics to record. Observer errors propagate; they preserve session flashes. A version conflict does
+not notify a page observer. Protocol events are a separate integration through `eventDispatcher`; see
+[configuration](configuration.md#observe-pages-and-protocol-results).
 
 ---
 

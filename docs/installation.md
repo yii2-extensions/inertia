@@ -7,8 +7,8 @@
 - Composer. The adapter installs `php-forge/inertia` `^0.5` and `psr/event-dispatcher` `^1.0` automatically.
 - An application-owned Inertia JavaScript client and build for interactive pages.
 
-These requirements come from `composer.json`. Match the installed adapter and core revisions when consulting their
-APIs. The application lockfile records the exact Yii development revision.
+These requirements come from `composer.json`. Match the installed adapter and core revisions when consulting their APIs.
+The application lockfile records the exact Yii development revision.
 
 ## Install the adapter
 
@@ -53,27 +53,27 @@ return [
 ];
 ```
 
-Use the application's existing secret management for a stable, private cookie validation key. Keep its request
-settings, access rules, and CSRF validation. If the application already uses a custom request subclass, reconcile
-its behavior with this adapter rather than silently replacing it.
-Keep existing body parsers when adding the JSON parser used for Inertia form submissions.
+Use the application's existing secret management for a stable, private cookie validation key. Keep its request settings,
+access rules, and CSRF validation. If the application already uses a custom request subclass, reconcile its behavior
+with this adapter rather than silently replacing it. Keep existing body parsers when adding the JSON parser used for
+Inertia form submissions.
 
-The bootstrap registers the `@inertia` alias and creates an `inertia` component of type `yii\inertia\Manager` when
-one is not configured. For requests carrying the Inertia header, it attaches response normalization before send.
-Keep the application's session component enabled if it uses validation errors or flash messages.
+The bootstrap registers the `@inertia` alias and creates an `inertia` component of type `yii\inertia\Manager` when one
+is not configured. For requests carrying the Inertia header, it attaches response normalization before send. Keep the
+application's session component enabled if it uses validation errors or flash messages.
 
 The default root view renders the page payload. For the cookie-to-header flow, initialize the token in an
-application-owned root view with `Yii::$app->getRequest()->getCsrfToken()` before the first write request. For this
-view and an asset version, continue with [configuration](configuration.md) and the
+application-owned root view with `Yii::$app->getRequest()->getCsrfToken()` before the first write request. For this view
+and an asset version, continue with [configuration](configuration.md) and the
 [application root-view recipe](examples.md#application-root-view).
 
 ## Connect the frontend
 
 Use the official [Inertia client setup](https://inertiajs.com/docs/v3/installation/client-side-setup) for the
-application's framework and client version. Configure its resolver to find the exact component name passed by PHP,
-such as `Dashboard` or `Users/Index`, and match the root element ID (`app` by default). The bundled view uses the
-Inertia v3 JSON-script format. For an older client, check its initial-page format and advanced protocol support;
-see [root views](configuration.md#root-view) and [response headers](configuration.md#redirects-and-response-headers).
+application's framework and client version. Configure its resolver to find the exact component name passed by PHP, such
+as `Dashboard` or `Users/Index`, and match the root element ID (`app` by default). The bundled view uses the Inertia v3
+JSON-script format. For an older client, check its initial-page format and advanced protocol support; see
+[root views](configuration.md#root-view) and [response headers](configuration.md#redirects-and-response-headers).
 
 This adapter has no Vite component, asset bundle, JavaScript package manifest, SSR server, or frontend installer.
 Register the application's own compiled bundle or existing asset integration in the root view. Installing the PHP
