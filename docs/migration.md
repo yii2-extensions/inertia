@@ -23,18 +23,17 @@ Version 0.2 extracted protocol behavior into `php-forge/inertia`. Keep Yii-facin
 | `yii\inertia\OnceProp`     | `PHPForge\Inertia\Prop\OnceProp`; prefer `Inertia::once()`                    |
 | `yii\inertia\Vite`         | Removed; use the application's selected asset integration and build.          |
 
-If application code directly imports core types, declare `php-forge/inertia` in that application's dependencies.
-Factory return types and fluent modifiers belong to the core; inspect the installed core before adapting custom
-wrappers. Do not reconstruct removed classes in the adapter namespace.
+If application code directly imports core types, declare `php-forge/inertia` in that application's dependencies. Factory
+return types and fluent modifiers belong to the core; inspect the installed core before adapting custom wrappers. Do not
+reconstruct removed classes in the adapter namespace.
 
 ### Root views and props
 
 Update a custom view's page type to `PHPForge\Inertia\Page` and use the supplied `pageJson`. The
-[complete view example](examples.md#application-root-view) preserves Yii's page lifecycle and HTML-safe embedding.
-Match the client root ID, component resolver, and asset loading. The default root has an inline JSON script
-identified by `data-page="app"` (or the configured ID) for Inertia v3.
-Clients that read JSON from the root element's `data-page` attribute need a custom view with attribute encoding;
-see [root views](configuration.md#root-view).
+[complete view example](examples.md#application-root-view) preserves Yii's page lifecycle and HTML-safe embedding. Match
+the client root ID, component resolver, and asset loading. The default root has an inline JSON script identified by
+`data-page="app"` (or the configured ID) for Inertia v3. Clients that read JSON from the root element's `data-page`
+attribute need a custom view with attribute encoding; see [root views](configuration.md#root-view).
 
 Prop callbacks take zero arguments. Capture required values explicitly. The version callback may instead take the
 current `yii\web\Request`. Avoid sending whole models or user identities when a small explicit array is sufficient.
@@ -45,31 +44,32 @@ Store validation messages as an array of string field keys with string or list-o
 `props.errors`; other flashes are emitted in the top-level `flash` field. Update clients that previously read
 `props.flash`. Invalid error structures now fail explicitly instead of being cast into an array.
 
-Version conflicts, prop-resolution failures, and observer failures leave flashes available. After a page result and
-a successful observer, the adapter consumes flashes before rendering the root view or serializing the response.
-See [configuration](configuration.md#validation-errors-and-flash-messages) for the exact boundary.
+Version conflicts, prop-resolution failures, and observer failures leave flashes available. After a page result and a
+successful observer, the adapter consumes flashes before rendering the root view or serializing the response. See
+[configuration](configuration.md#validation-errors-and-flash-messages) for the exact boundary.
 
 ### Redirects and CSRF
 
-Keep bootstrap registration so response normalization runs before send. Preserve `Vary` and Inertia headers through
-the application's middleware/proxy. Retain `yii\inertia\web\Request` for signed cookie-to-header CSRF handling;
-verify a real valid form submission and rejection of an invalid token.
+Keep bootstrap registration so response normalization runs before send. Preserve `Vary` and Inertia headers through the
+application's middleware/proxy. Retain `yii\inertia\web\Request` for signed cookie-to-header CSRF handling; verify a
+real valid form submission and rejection of an invalid token.
 
 ## From 0.2 through 0.5
 
 - 0.3 requires core 0.2 and uses `PageInput::create()` with immutable modifiers. Review direct core construction in
   custom integrations; normal `Inertia::render()` calls remain adapter-facing.
 - 0.4 requires core `^0.3`, uses its `Header` enum, and supports portable `ResolvedPageObserver` instances. Replace
-  custom observer assumptions with the callback contract in [configuration](configuration.md#observe-pages-and-protocol-results).
+  custom observer assumptions with the callback contract in
+  [configuration](configuration.md#observe-pages-and-protocol-results).
 - 0.5 requires core `^0.5`. Match direct core usage to that installed API.
 - 0.6 adds the `scrollMetadata()` facade factory and the default protocol's `eventDispatcher` option. Configure the
   dispatcher before the protocol is created. A supplied `protocol` ignores the manager's dispatcher option.
 
 ## Verify the migrated application
 
-Run the [upgrade checklist](../UPGRADE.md) and the [example tests](testing.md#application-checks). The
-server-side tests use fixture pages and do not replace browser checks of the application's own client version,
-CSRF cookie exchange, deferred UI, or navigation. Review the exact dependency changes before deploying.
+Apply the [upgrade guide](../UPGRADE.md) actions and run the [example tests](testing.md#application-checks). The
+server-side tests use fixture pages and do not replace browser checks of the application's own client version, CSRF
+cookie exchange, deferred UI, or navigation. Review the exact dependency changes before deploying.
 
 ---
 

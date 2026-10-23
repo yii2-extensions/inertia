@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - docs/ci: declare bundled skill source, auto-sync trusted skills via Composer, and pin workflows to `yii2-framework/actions` `v2.0.1` release commit.
 - chore: standardize Composer scripts, linter configurations and testing guide with the template, and remove the scaffold setup.
+- docs: align Yii `22.0` integration guidance with adapter behavior, clarify view and flash contracts, and update package metadata and formatting.
 
 ## 0.6.1 October 18, 2026
 

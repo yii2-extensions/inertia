@@ -8,10 +8,11 @@ normalization, observers, and migration. Installing the skill does not install P
 
 ### Automatic Composer installation
 
-Complete the [one-time application setup](https://yii2-framework.github.io/docs/project/ai-agents/#composer-installation) to enable `llm/skills`
-and set `auto-sync` to `true` in `skills.json`. Approve `yii2-extensions/inertia` explicitly in
-`dependencies.composer.trusted`.
-The installed package must include its skill bundle; its `extra.skills.source` declares the directory.
+Complete the
+[one-time application setup](https://yii2-framework.github.io/docs/project/ai-agents/#composer-installation) to enable
+`llm/skills` and set `auto-sync` to `true` in `skills.json`. Approve `yii2-extensions/inertia` explicitly in
+`dependencies.composer.trusted`. The installed package must include its skill bundle; its `extra.skills.source` declares
+the directory.
 
 ```bash
 composer install
@@ -37,10 +38,10 @@ A Composer installation can be a source if its release includes `skills/`:
 npx skills@1.7.2 add ./vendor/yii2-extensions/inertia --list
 ```
 
-Installing a dependency under `vendor/` alone does not expose its skill to a client opened at the application root.
-For a public source, first list `npx skills@1.7.2 add yii2-extensions/inertia --list`; install from GitHub only once
-the listing confirms that the skill is published.
-Keep project scope; review destinations before installation. A copied skill is a snapshot to refresh on upgrades.
+Installing a dependency under `vendor/` alone does not expose its skill to a client opened at the application root. For
+a public source, first list `npx skills@1.7.2 add yii2-extensions/inertia --list`; install from GitHub only once the
+listing confirms that the skill is published. Keep project scope; review destinations before installation. A copied
+skill is a snapshot to refresh on upgrades.
 
 ## Discovery paths and activation
 
@@ -50,15 +51,15 @@ Keep project scope; review destinations before installation. A copied skill is a
 | [Claude Code](https://code.claude.com/docs/en/skills) | `.claude/skills/yii2-inertia-integration/SKILL.md`                                            | `/yii2-inertia-integration`                                     |
 | [OpenCode](https://opencode.ai/docs/skills/)          | `.agents/skills/`, `.claude/skills/`, or `.opencode/skills/`, followed by the named directory | Load `yii2-inertia-integration` through the native `skill` tool |
 
-This checkout links `.agents/skills/` and `.claude/skills/` entries to the canonical directory under `skills/`.
-OpenCode supports those shared locations, so no third editable copy is needed. Inspect its available skills for
-duplicate names if multiple paths are present. For manual installation, copy or link the complete named directory;
-keep `SKILL.md` and its frontmatter intact. The pinned installer uses `.agents/skills/` for Codex/OpenCode and
-`.claude/skills/` for Claude Code.
+This checkout links `.agents/skills/` and `.claude/skills/` entries to the canonical directory under `skills/`. OpenCode
+supports those shared locations, so no third editable copy is needed. Inspect its available skills for duplicate names
+if multiple paths are present. For manual installation, copy or link the complete named directory; keep `SKILL.md` and
+its frontmatter intact. The pinned installer uses `.agents/skills/` for Codex/OpenCode and `.claude/skills/` for Claude
+Code.
 
-The skill first uses supplied local guides or the installed package revision. It can consult the package's GitHub
-guides when those files are absent from a Composer archive. It does not depend on a relative `../../docs` path being
-present beside an installed skill. Human documentation and skill distribution remain owned by the package sources.
+The skill first uses supplied local guides or the installed package revision. It can consult the package's GitHub guides
+when those files are absent from a Composer archive. It does not depend on a relative `../../docs` path being present
+beside an installed skill. Human documentation and skill distribution remain owned by the package sources.
 
 ## Verify each stage
 

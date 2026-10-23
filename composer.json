@@ -2,11 +2,7 @@
     "name": "yii2-extensions/inertia",
     "type": "library",
     "description": "Yii2 adapter for the framework-agnostic Inertia.js PHP protocol core.",
-    "homepage": "https://github.com/yii2-extensions/inertia",
-    "support": {
-        "issues": "https://github.com/yii2-extensions/inertia/issues",
-        "source": "https://github.com/yii2-extensions/inertia"
-    },
+    "homepage": "https://yii2-framework.github.io/docs/extensions/inertia/",
     "keywords": [
         "inertia",
         "php",
@@ -15,6 +11,11 @@
         "yii2"
     ],
     "license": "BSD-3-Clause",
+    "support": {
+        "issues": "https://github.com/yii2-extensions/inertia/issues",
+        "source": "https://github.com/yii2-extensions/inertia",
+        "docs": "https://yii2-framework.github.io/docs/extensions/inertia/"
+    },
     "authors": [
         {
             "name": "Wilmer Arambula",
