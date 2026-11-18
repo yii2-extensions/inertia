@@ -72,6 +72,34 @@ beside an installed skill. Human documentation and skill distribution remain own
 `--list` proves installer discovery only. Reading Markdown manually does not prove native activation or automatic
 selection. Record the client version, loaded skill source and results from the consuming application's own checks.
 
----
+## Example prompts
+
+Start a fresh client session at the application root. The explicit example uses Codex's `$skill-name` notation; use
+`/yii2-inertia-integration` in Claude Code or the installed client's native skill mechanism. Do not paste the skill body
+and count that as native activation. These are tasks to execute and verify, not claims that an evaluation has passed.
+
+### Explicit invocation
+
+```text
+$yii2-inertia-integration
+Show a Yii 22 Inertia form response that preserves signed-cookie CSRF validation and validation errors. Include a
+valid submission, a rejected CSRF submission and the expected redirect behavior after a write.
+Inspect the installed revision first. Do not install dependencies or change files without authorization.
+```
+
+### Natural selection
+
+```text
+My Inertia partial reload and validation flash work differently from the initial HTML request. How should I inspect
+the installed adapter and core contracts without copying a Laravel recipe?
+```
+
+### Verify the outcome
+
+Verify HTML and JSON responses, flash shape, CSRF rejection and redirect status with the actual adapter; browser
+mounting is a separate check. Record native loading evidence separately from configuration review, executable checks and
+browser/runtime results. For a negative selection control, ask an unrelated question in a fresh session and confirm this
+package skill is not loaded. Keep evaluation traces private; report unavailable checks rather than treating discovery as
+execution.
 
 [Back to documentation](../README.md#documentation)

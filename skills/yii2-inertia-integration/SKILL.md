@@ -88,6 +88,25 @@ own dispatcher. `pageObserver` receives resolved initial/JSON pages, skips versi
 failures. Select/redact diagnostics before recording payloads. Debugger collector/panel setup belongs to that debugger's
 installed version; the dispatcher option alone does not register them.
 
+## Intended behavior
+
+These look like bugs and are adapter contracts; do not "fix" them in package or application code:
+
+- `Bootstrap` attaches response normalization only when the request already carries `X-Inertia` while the application
+  bootstraps. Without it in `bootstrap`, no default `inertia` component exists and an Inertia PUT/PATCH/DELETE `302`
+  stays `302`. Redirects of ordinary browser requests are never converted.
+- `Manager::isInertiaRequest()` accepts only `true` or `1` in `X-Inertia`, trimmed and case-insensitive.
+- With cookie validation enabled, `X-XSRF-TOKEN` must carry the signed `XSRF-TOKEN` cookie value. A masked token from
+  `getCsrfToken()` sent in that header is rejected. The cookie is not HTTP-only so the client can read it.
+- An `errors` flash with another shape throws `InvalidConfigException` and stays in the session until the application
+  removes it. A `409` version conflict also leaves every flash unconsumed.
+- `share('user.name', ...)` builds a nested shared array, but a page prop named `user` replaces the whole shared `user`.
+- `getVersion()` returns an empty string when no version is configured. `Inertia::location()` answers an ordinary
+  request with a `302` redirect and an Inertia request with `409` and `X-Inertia-Location`.
+- A prop closure that declares a parameter fails with the core `PropResolutionException`.
+
+`Exception\Message` holds the adapter's exception texts; read it only to match an error message.
+
 ## Migrate and verify
 
 For 0.1 consumers, replace removed `yii\inertia\Page` and prop classes with core types or facade factories, remove

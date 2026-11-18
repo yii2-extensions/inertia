@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.6.3 Under development
 
+- docs: align `README.md` badges and Security section with the standard, add skill prompts and contracts, and add Scorecard.
+
 ## 0.6.2 October 23, 2026
 
 - docs/ci: declare bundled skill source, auto-sync trusted skills via Composer, and pin workflows to `yii2-framework/actions` `v2.0.1` release commit.

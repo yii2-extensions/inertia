@@ -14,14 +14,14 @@
     <a href="https://github.com/yii2-extensions/inertia/actions/workflows/build.yml" target="_blank">
         <img src="https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/build.yml?style=for-the-badge&label=PHPUnit&logo=github" alt="PHPUnit">
     </a>
+    <a href="https://codecov.io/github/yii2-extensions/inertia" target="_blank">
+        <img src="https://img.shields.io/codecov/c/github/yii2-extensions/inertia.svg?style=for-the-badge&logo=codecov&logoColor=white&label=Coverage" alt="Coverage">
+    </a>
     <a href="https://dashboard.stryker-mutator.io/reports/github.com/yii2-extensions/inertia/main" target="_blank">
         <img src="https://img.shields.io/endpoint?style=for-the-badge&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fyii2-extensions%2Finertia%2Fmain" alt="Mutation Testing">
     </a>
     <a href="https://github.com/yii2-extensions/inertia/actions/workflows/static.yml" target="_blank">
         <img src="https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/static.yml?style=for-the-badge&label=PHPStan&logo=github" alt="PHPStan">
-    </a>
-    <a href="https://github.com/yii2-extensions/inertia/actions/workflows/security.yml" target="_blank">
-        <img src="https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/security.yml?style=for-the-badge&label=Security&logo=github" alt="Security">
     </a>
 </p>
 
@@ -43,8 +43,8 @@ Yii 2.0.x is outside this package's declared support.
 composer require yii2-extensions/inertia:^0.6
 ```
 
-See the [installation guide](docs/installation.md) for Yii development-line resolution, bootstrap registration, CSRF
-configuration, and frontend setup.
+See the [installation guide](https://github.com/yii2-extensions/inertia/blob/main/docs/installation.md) for Yii
+development-line resolution, bootstrap registration, CSRF configuration, and frontend setup.
 
 ## Quick start
 
@@ -61,19 +61,26 @@ return \yii\inertia\Inertia::render('Dashboard', ['stats' => ['visits' => 42]]);
 ```
 
 A normal visit renders HTML; an Inertia visit returns a JSON page. The default view supplies the page payload but loads
-no frontend bundle. Continue with [configuration](docs/configuration.md) and the [usage examples](docs/examples.md) to
-connect the application's client.
+no frontend bundle. Continue with
+[configuration](https://github.com/yii2-extensions/inertia/blob/main/docs/configuration.md) and the
+[usage examples](https://github.com/yii2-extensions/inertia/blob/main/docs/examples.md) to connect the application's
+client.
 
 ## Documentation
 
 Practical guides and application recipes, with exact contracts in PHPDoc.
 
-- 📚 [Installation guide](docs/installation.md): Composer, bootstrap, CSRF, and frontend setup.
-- ⚙️ [Configuration and adapter reference](docs/configuration.md): manager options, props, root views, and responses.
-- 💡 [Usage examples](docs/examples.md): controllers, prop recipes, validation, and redirects.
-- 🔄 [Upgrade guide](UPGRADE.md) and [migration guide](docs/migration.md): application changes for existing
-  installations.
-- 🧪 [Testing guide](docs/testing.md): PHPUnit, static analysis, mutation, and documentation checks.
+- 📚 [Installation guide](https://github.com/yii2-extensions/inertia/blob/main/docs/installation.md): Composer,
+  bootstrap, CSRF, and frontend setup.
+- ⚙️ [Configuration and adapter reference](https://github.com/yii2-extensions/inertia/blob/main/docs/configuration.md):
+  manager options, props, root views, and responses.
+- 💡 [Usage examples](https://github.com/yii2-extensions/inertia/blob/main/docs/examples.md): controllers, prop recipes,
+  validation, and redirects.
+- 🔄 [Upgrade guide](UPGRADE.md) and
+  [migration guide](https://github.com/yii2-extensions/inertia/blob/main/docs/migration.md): application changes for
+  existing installations.
+- 🧪 [Testing guide](https://github.com/yii2-extensions/inertia/blob/main/docs/testing.md): PHPUnit, static analysis,
+  mutation, and documentation checks.
 
 The guides and the [API reference](https://yii2-framework.github.io/docs/extensions/inertia/reference/) generated from
 the PHPDoc in `src/` are published at <https://yii2-framework.github.io/docs/extensions/inertia/>.
@@ -85,7 +92,8 @@ of a page by appending `index.md` to its URL. The
 [AI agents guide](https://yii2-framework.github.io/docs/project/ai-agents/) covers skill installation, client setup and
 verification.
 
-- 🤖 [`yii2-inertia-integration` skill](docs/agents.md): Inertia integration.
+- 🤖 [`yii2-inertia-integration` skill](https://github.com/yii2-extensions/inertia/blob/main/docs/agents.md): Yii 22
+  adapter setup, root views, props, validation flashes, signed CSRF cookies, redirects, observers and 0.1 upgrades.
 - 🧭 [`yii2-framework` skill](https://yii2-framework.github.io/docs/guide/skills/yii2-framework/): Yii 22.0 application
   conventions.
 
@@ -102,10 +110,20 @@ the [changelog](CHANGELOG.md).
 
 ## Project status
 
-[![Codecov](https://img.shields.io/codecov/c/github/yii2-extensions/inertia.svg?style=for-the-badge&logo=codecov&logoColor=white&label=Coverage)](https://codecov.io/github/yii2-extensions/inertia)
 [![PHPStan Level Max](https://img.shields.io/badge/PHPStan-Level%20Max-4F5D95.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yii2-extensions/inertia/actions/workflows/static.yml)
 [![Quality](https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/quality.yml?style=for-the-badge&label=Quality&logo=github)](https://github.com/yii2-extensions/inertia/actions/workflows/quality.yml)
-[![StyleCI](https://img.shields.io/badge/StyleCI-Passed-44CC11.svg?style=for-the-badge&logo=github&logoColor=white)](https://github.styleci.io/repos/1196150046?branch=main)
+[![StyleCI](https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Fgithub.styleci.io%2Frepos%2F1196150046%2Fshield%3Fbranch%3Dmain&query=%2F%2F*%5Blocal-name%28%29%3D%27text%27%5D%5B2%5D&label=StyleCI&style=for-the-badge&logo=github&logoColor=white&color=4F5D95)](https://github.styleci.io/repos/1196150046?branch=main)
+
+## Security
+
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/yii2-extensions/inertia/badge?style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/yii2-extensions/inertia)
+[![Zizmor](https://img.shields.io/github/actions/workflow/status/yii2-extensions/inertia/security.yml?style=for-the-badge&label=Zizmor&logo=github)](https://github.com/yii2-extensions/inertia/actions/workflows/security.yml)
+
+## Built with AI
+
+[![Built with Claude Code](https://img.shields.io/badge/Built%20with-Claude%20Code-D97757.svg?style=for-the-badge&logo=claude&logoColor=white)](https://claude.com/claude-code)
+[![Built with Codex](https://img.shields.io/badge/Built%20with-Codex-10A37F.svg?style=for-the-badge&logo=openaigym&logoColor=white)](https://openai.com/codex)
+[![Reviewed by CodeRabbit](https://img.shields.io/badge/Reviewed%20by-CodeRabbit-FF570A.svg?style=for-the-badge&logo=coderabbit&logoColor=white)](https://www.coderabbit.ai)
 
 ## Our social networks
 
