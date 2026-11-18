@@ -12,9 +12,9 @@
     ],
     "license": "BSD-3-Clause",
     "support": {
+        "docs": "https://yii2-framework.github.io/docs/extensions/inertia/",
         "issues": "https://github.com/yii2-extensions/inertia/issues",
-        "source": "https://github.com/yii2-extensions/inertia",
-        "docs": "https://yii2-framework.github.io/docs/extensions/inertia/"
+        "source": "https://github.com/yii2-extensions/inertia"
     },
     "authors": [
         {

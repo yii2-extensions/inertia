@@ -1,9 +1,8 @@
-# AI agents (if present)
-.codex
-.claude/*
-!.claude/skills/
-.claude/skills/*
-!.claude/skills/yii2-inertia-integration
+# agents (if present)
+.agents
+
+# artifacts (if present)
+artifacts
 
 # codecoverage (if present)
 code_coverage
@@ -22,6 +21,16 @@ composer.lock
 .github/prompts/**
 .github/skills/**
 
+# local ai agent, editor, and github cli config (if present)
+.claude
+.codex
+.config
+
+# local environment files
+.env
+.env.*
+!.env.example
+
 # mac ds_store (if present)
 .DS_Store
 
@@ -30,14 +39,12 @@ nbproject
 
 # node_modules (if present)
 node_modules
-package-lock.json
-!src/assets/package-lock.json
-
-# phpactor (if present)
-.phpactor.*
 
 # phpstorm project (if present)
 .idea
+
+# phpactor (if present)
+.phpactor.*
 
 # phpunit (if present)
 .phpunit.cache
@@ -45,6 +52,12 @@ package-lock.json
 
 # private maintainer files (if present)
 /internal/
+
+# report (if present)
+reports
+
+# stryker (if present)
+.stryker-tmp
 
 # vagrant (if present)
 .vagrant
