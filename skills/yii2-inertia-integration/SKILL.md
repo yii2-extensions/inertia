@@ -98,12 +98,15 @@ These look like bugs and are adapter contracts; do not "fix" them in package or 
 - `Manager::isInertiaRequest()` accepts only `true` or `1` in `X-Inertia`, trimmed and case-insensitive.
 - With cookie validation enabled, `X-XSRF-TOKEN` must carry the signed `XSRF-TOKEN` cookie value. A masked token from
   `getCsrfToken()` sent in that header is rejected. The cookie is not HTTP-only so the client can read it.
-- An `errors` flash with another shape throws `InvalidConfigException` and stays in the session until the application
-  removes it. A `409` version conflict also leaves every flash unconsumed.
+- An `errors` flash with another shape throws `InvalidConfigException`; an empty field key throws the core
+  `InvalidPageInputException`. The rejected flash stays available in the current request and expires on the next one. A
+  `409` version conflict leaves every flash unconsumed.
 - `share('user.name', ...)` builds a nested shared array, but a page prop named `user` replaces the whole shared `user`.
 - `getVersion()` returns an empty string when no version is configured. `Inertia::location()` answers an ordinary
   request with a `302` redirect and an Inertia request with `409` and `X-Inertia-Location`.
-- A prop closure that declares a parameter fails with the core `PropResolutionException`.
+- The core calls prop closures without arguments: a closure with a required parameter fails with the core
+  `PropResolutionException`, unless a deferred prop with `rescue()` enabled absorbs the failure. Optional and variadic
+  parameters resolve normally.
 
 `Exception\Message` holds the adapter's exception texts; read it only to match an error message.
 
