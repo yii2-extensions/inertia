@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   mutation:
-    uses: yii2-framework/actions/.github/workflows/infection.yml@7a2d60325d59c5c9377fd445c912f2f1bfacf9d9 # v2.0.2
+    uses: yii2-framework/actions/.github/workflows/infection.yml@4873e17a5d41412f13a94a616bc9d4b7eb66b93b # v2.0.3
     with:
       command-options: --threads=max
       phpstan: true
